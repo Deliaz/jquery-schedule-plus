@@ -24,10 +24,10 @@
                 widthTime: 60 * 10,  // cell timestamp example 10 minutes
                 timeLineY: 60,       // height(px)
                 verticalScrollbar: 20,   // scrollbar (px)
-                timeLineBorder: 2,   // border(top and bottom)
+                timeLineBorder: 4,   // border(top and bottom)
                 debug: "#debug",     // debug string output elements
-                rows: {
-                    '1': {
+                rows: [
+                    {
                         title: 'Title Area',
                         schedule: [
                             {
@@ -44,18 +44,20 @@
                             }
                         ]
                     },
-                    '2': {
+                    {
                         title: 'Title Area',
                         schedule: [
                             {
                                 start: '16:00',
                                 end: '17:00',
                                 text: 'Text Area',
-                                data: {}
+                                data: [
+                                        'fewfewfwe'
+                                ]
                             }
                         ]
                     }
-                },
+                ],
                 change: function (node, data) {
                     console.log('change_event');
                 },
@@ -70,16 +72,26 @@
                     console.log('time_click');
                 }
             });
+
+
+            $sc.addScheduleBgData({
+                start: '12:00',
+                end: '13:00',
+                text: 'Text Area 2',
+                data: {}
+            });
         });
     </script>
 </head>
 <body>
-<div class="container" style="margin-top:150px;">
+<div class="container" style="margin-top:40px;">
 
     <h1 id="demo">jQuery Schedule Plugin Demo</h1>
     <div style="padding: 0 0 40px;">
         <div id="schedule"></div>
     </div>
+
+    <div id="debug"></div>
 </div>
 </body>
 </html>

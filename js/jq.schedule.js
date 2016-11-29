@@ -4,8 +4,8 @@
             rows: {},
             startTime: "07:00",
             endTime: "19:30",
-            widthTimeX: 25,		// 1cell辺りの幅(px)
-            widthTime: 600,		// 区切り時間(秒)
+            widthTimeX: 25,		// Width per cell (px)
+            widthTime: 600,		// Separation time (sec)
             timeLineY: 50,		// timeline height(px)
             timeLineBorder: 1,	// timeline height border
             timeBorder: 1,		// border width
@@ -38,8 +38,8 @@
 
         var setting = $.extend(defaults, options);
         this.setting = setting;
-        var scheduleData = new Array();
-        var timelineData = new Array();
+        var scheduleData = [];
+        var timelineData = [];
         var $element = $(this);
         var element = (this);
         var tableStartTime = element.calcStringTime(setting.startTime);
@@ -50,17 +50,19 @@
 
         this.getScheduleData = function () {
             return scheduleData;
-        }
+        };
+
         this.getTimelineData = function () {
             return timelineData;
-        }
-        // 現在のタイムライン番号を取得
+        };
+
+        // Get the current timeline number
         this.getTimeLineNumber = function (top) {
             var num = 0;
             var n = 0;
             var tn = Math.ceil(top / (setting.timeLineY + setting.timeLinePaddingTop + setting.timeLinePaddingBottom));
-            for (var i in setting.rows) {
-                var r = setting.rows[i];
+            setting.rows.forEach(function (val) {
+                var r = val;
                 var tr = 0;
                 if (typeof r["schedule"] == Object) {
                     tr = r["schedule"].length;
@@ -70,13 +72,15 @@
                 }
                 n += Math.max(tr, 1);
                 if (n >= tn) {
-                    break;
+                    return;
                 }
                 num++;
-            }
+            });
+
             return num;
-        }
-        // 背景データ追加
+        };
+
+        // Add background data
         this.addScheduleBgData = function (data) {
             var st = Math.ceil((data["start"] - tableStartTime) / setting.widthTime);
             var et = Math.floor((data["end"] - tableStartTime) / setting.widthTime);
@@ -98,8 +102,9 @@
             }
             //$element.find('.sc_main').append($bar);
             $element.find('.sc_main .timeline').eq(data["timeline"]).append($bar);
-        }
-        // スケジュール追加
+        };
+
+        // Add schedule
         this.addScheduleData = function (data) {
             var st = Math.ceil((data["start"] - tableStartTime) / setting.widthTime);
             var et = Math.floor((data["end"] - tableStartTime) / setting.widthTime);
@@ -122,7 +127,7 @@
             }
             //$element.find('.sc_main').append($bar);
             $element.find('.sc_main .timeline').eq(data["timeline"]).append($bar);
-            // データの追加
+            // Add data
             scheduleData.push(data);
             // key
             var key = scheduleData.length - 1;
@@ -168,7 +173,7 @@
                     var positionTop = ui.position.top;
                     var positionLeft = ui.position.left;
                     var timelineNum = element.getTimeLineNumber(ui.position.top);
-                    // 位置の修正
+                    // fix position
                     //ui.position.top = Math.floor(ui.position.top / setting.timeLineY) * setting.timeLineY;
                     //ui.position.top = element.getScheduleCount(timelineNum) * setting.timeLineY;
                     ui.position.left = Math.floor(ui.position.left / setting.widthTimeX) * setting.widthTimeX;
@@ -176,21 +181,21 @@
 
                     //$moveNode.find(".text").text(timelineNum+" "+(element.getScheduleCount(timelineNum) + 1));
                     if (currentNode["nowTimeline"] != timelineNum) {
-                        // 高さの調節
+                        // Adjust height
                         //element.resizeRow(currentNode["nowTimeline"],element.getScheduleCount(currentNode["nowTimeline"]));
                         //element.resizeRow(timelineNum,element.getScheduleCount(timelineNum) + 1);
-                        // 現在のタイムライン
+                        // Current timeline
                         currentNode["nowTimeline"] = timelineNum;
                     } else {
                         //ui.position.top = currentNode["currentTop"];
                     }
                     currentNode["currentTop"] = ui.position.top;
                     currentNode["currentLeft"] = ui.position.left;
-                    // テキスト変更
+                    // Text change
                     element.rewriteBarText($moveNode, scheduleData[sc_key]);
                     return true;
                 },
-                // 要素の移動が終った後の処理
+                // Processing after element movement has ended
                 stop: function (event, ui) {
                     jQuery(this).data("dragCheck", false);
                     currentNode = null;
@@ -205,7 +210,7 @@
 
                     scheduleData[sc_key]["start"] = start;
                     scheduleData[sc_key]["end"] = end;
-                    // コールバックがセットされていたら呼出
+                    // Call back if callback is set
                     if (setting.change) {
                         setting.change(node, scheduleData[sc_key]);
                     }
@@ -219,7 +224,7 @@
                     var node = jQuery(this);
                     node.data("resizeCheck", true);
                 },
-                // 要素の移動が終った後の処理
+                // Processing after element movement has ended
                 stop: function (event, ui) {
                     var node = jQuery(this);
                     var sc_key = node.data("sc_key");
@@ -232,13 +237,13 @@
                     scheduleData[sc_key]["start"] = start;
                     scheduleData[sc_key]["end"] = end;
 
-                    // 高さ調整
+                    // Height adjustment
                     element.resetBarPosition(timelineNum);
-                    // テキスト変更
+                    // Text change
                     element.rewriteBarText(node, scheduleData[sc_key]);
 
                     node.data("resizeCheck", false);
-                    // コールバックがセットされていたら呼出
+                    // Call back if callback is set
                     if (setting.change) {
                         setting.change(node, scheduleData[sc_key]);
                     }
@@ -246,7 +251,7 @@
             });
             return key;
         };
-        // スケジュール数の取得
+        // Acquire schedule number
         this.getScheduleCount = function (n) {
             var num = 0;
             for (var i in scheduleData) {
@@ -283,7 +288,7 @@
                 $tl.data("timeline", timeline);
                 $timeline.append($tl);
             }
-            // クリックイベント
+            // click event
             if (setting.time_click) {
                 $timeline.find(".tl").click(function () {
                     setting.time_click(this, jQuery(this).data("time"), jQuery(this).data("timeline"), timelineData[jQuery(this).data("timeline")]);
@@ -297,7 +302,7 @@
                 $element.find('.sc_data .timeline').eq(id).addClass(row["class"]);
                 $element.find('.sc_main .timeline').eq(id).addClass(row["class"]);
             }
-            // スケジュールタイムライン
+            // Schedule timeline
             if (row["schedule"]) {
                 for (var i in row["schedule"]) {
                     var bdata = row["schedule"][i];
@@ -318,7 +323,7 @@
                     element.addScheduleData(data);
                 }
             }
-            // 高さの調整
+            // Adjust height
             element.resetBarPosition(id);
             $element.find('.sc_main .timeline').eq(id).droppable({
                 accept: ".sc_Bar",
@@ -327,15 +332,15 @@
                     var sc_key = node.data("sc_key");
                     var nowTimelineNum = scheduleData[sc_key]["timeline"];
                     var timelineNum = $element.find('.sc_main .timeline').index(this);
-                    // タイムラインの変更
+                    // change timeline
                     scheduleData[sc_key]["timeline"] = timelineNum;
                     node.appendTo(this);
-                    // 高さ調整
+                    // Height adjustment
                     element.resetBarPosition(nowTimelineNum);
                     element.resetBarPosition(timelineNum);
                 }
             });
-            // コールバックがセットされていたら呼出
+            // Call back if callback is set
             if (setting.append) {
                 $element.find('.sc_main .timeline').eq(id).find(".sc_Bar").each(function () {
                     var node = jQuery(this);
@@ -366,7 +371,7 @@
 
             return data;
         };
-        // テキストの変更
+        // Change text
         this.rewriteBarText = function (node, data) {
             var x = node.position().left;
             var w = node.width();
@@ -375,16 +380,16 @@
             var end = start + (data["end"] - data["start"]);
             var html = element.formatTime(start) + "-" + element.formatTime(end);
             jQuery(node).find(".time").html(html);
-        }
+        };
         this.resetBarPosition = function (n) {
-            // 要素の並び替え
+            // reorder elements
             var $bar_list = $element.find('.sc_main .timeline').eq(n).find(".sc_Bar");
             var codes = [];
             for (var i = 0; i < $bar_list.length; i++) {
                 codes[i] = {code: i, x: jQuery($bar_list[i]).position().left};
             }
-            ;
-            // ソート
+
+            // Sort
             codes.sort(function (a, b) {
                 if (a["x"] < b["x"]) {
                     return -1;
@@ -426,7 +431,7 @@
                 $e1.css({top: ((h * setting.timeLineY) + setting.timeLinePaddingTop)});
                 check[h][check[h].length] = c1;
             }
-            // 高さの調整
+            // Adjust height
             this.resizeRow(n, check.length);
         };
         this.resizeRow = function (n, height) {
@@ -510,11 +515,12 @@
             }).trigger("resize");
 
             // addrow
-            for (var i in setting.rows) {
-                this.addRow(i, setting.rows[i]);
-            }
+
+            setting.rows.forEach(function (val, i) {
+                this.addRow(i, val);
+            }.bind(this));
         };
-        // 初期化
+        // Initialization
         this.init();
 
         this.debug = function () {
