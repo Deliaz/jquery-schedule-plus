@@ -11,8 +11,8 @@ $.fn.timeSchedule = function (options) {
         timeLineBorder: 1,	// timeline height border
         timeBorder: 1,		// border width
         timeLinePaddingTop: 0,
-        timeLinePaddingBottom: 0,
-        headTimeBorder: 1,	// time border width
+        timeLinePaddingBottom: 3,
+        headTimeBorder: 0,	// time border width
         dataWidth: 160,		// data width
         verticalScrollbar: 0,	// vertical scrollbar width
 
@@ -182,8 +182,9 @@ $.fn.timeSchedule = function (options) {
                 let sc_key = node.data("sc_key");
                 let x = node.position().left;
                 let w = node.width();
+
                 let start = tableStartTime + (Math.floor(x / setting.widthTimeX) * setting.widthTime);
-                //let end = tableStartTime + (Math.floor((x + w) / setting.widthTimeX) * setting.widthTime);
+                // let end = tableStartTime + (Math.floor((x + w) / setting.widthTimeX) * setting.widthTime);
                 let end = start + ((scheduleData[sc_key]["end"] - scheduleData[sc_key]["start"]));
 
                 scheduleData[sc_key]["start"] = start;

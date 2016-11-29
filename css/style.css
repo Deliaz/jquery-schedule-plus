@@ -72,12 +72,15 @@ body {
 #schedule .sc_Bar{
 	position:absolute;
 	color:#FFF;
+    box-sizing: border-box;
+
 	background:#4f93d6;
 	cursor:pointer;
 	z-index:10;
-	box-shadow: 2px 2px 4px #333;
-	-moz-box-shadow: 2px 2px 4px #333;
-	-webkit-box-shadow: 2px 2px 4px #333;
+	box-shadow: 2px 2px 2px rgba(0,0,0,0.3);
+
+    /*border-right: 4px solid #555;*/
+    /*border-left: 4px solid #555;*/
 }
 #schedule .ui-draggable-dragging,
 #schedule .ui-resizeable{
