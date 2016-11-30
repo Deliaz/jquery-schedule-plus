@@ -20,8 +20,9 @@ body {
 	overflow:hidden;
 }
 #schedule .sc_menu .sc_header .sc_time{
+	box-sizing: border-box;
 	text-align:center;
-	border-left:solid 1px #FFF;
+	border-left:solid 1px #bbb;
 	background:#333;
 }
 #schedule .sc_menu .sc_header_cell,
@@ -43,8 +44,6 @@ body {
 #schedule .sc_main_scroll .sc_time{
 	color:#FFFFFF;
 	padding:4px 0;
-	line-height:18px;
-	height:18px;
 	display:block;
 }
 #schedule .sc_header .sc_time,
@@ -129,6 +128,11 @@ body {
 	height:100%;
 	border-right:solid 1px #CCC;
 }
+#schedule .sc_main_scroll .sc_main .tl.marked-for-new-event {
+	background-color: #9bc0ff !important;
+	border-right:solid 1px #9bc0ff;
+}
+
 #schedule .sc_main_scroll .sc_main .tl:hover{
 	background:#F0F0F0;
 }

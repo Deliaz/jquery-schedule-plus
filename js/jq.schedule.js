@@ -1,5 +1,14 @@
 import * as Utils from './utils';
 
+$.fn.docPosition = function (element) {
+    if (element.jquery) element = element[0];
+
+    var position = this[0].compareDocumentPosition(element);
+
+    if (position & 0x04) return 'after';
+    if (position & 0x02) return 'before';
+};
+
 $.fn.timeSchedule = function (options) {
     const defaults = {
         rows: {},
@@ -41,6 +50,11 @@ $.fn.timeSchedule = function (options) {
         return scheduleData;
     };
 
+    /**
+     * Return timeline data.
+     * Public
+     * @returns {Array}
+     */
     this.getTimelineData = function () {
         return timelineData;
     };
@@ -69,10 +83,15 @@ $.fn.timeSchedule = function (options) {
         return num;
     };
 
+    /**
+     * Add new event to timeline
+     * Public
+     * @param data
+     */
     this.addNewEvent = function (data) {
 
         let convertedData = {
-            "timeline": 0,
+            "timeline": data.timeline || 0,
             "start": Utils.calcStringTime(data.start),
             "end": Utils.calcStringTime(data.end),
             "text": data.text,
@@ -86,13 +105,13 @@ $.fn.timeSchedule = function (options) {
     this.addScheduleData = function (data) {
         let st = Math.ceil((data["start"] - tableStartTime) / setting.widthTime);
         let et = Math.floor((data["end"] - tableStartTime) / setting.widthTime);
-        let $bar = jQuery('<div class="sc_Bar"><span class="head"><span class="time"></span></span><span class="text"></span></div>');
+        let $bar = $('<div class="sc_Bar"><span class="head"><span class="time"></span></span><span class="text"></span></div>');
         let stext = Utils.formatTime(data["start"]);
         let etext = Utils.formatTime(data["end"]);
-        let snum = element.getScheduleCount(data["timeline"]);
+        let snum = data["timeline"];
         $bar.css({
             left: (st * setting.widthTimeX),
-            top: ((snum * setting.timeLineY) + setting.timeLinePaddingTop),
+            top: 0, //((snum * setting.timeLineY) + setting.timeLinePaddingTop), // это влияет на отступ блока внутри собственного таймлайна. тупо что он отличный был от нуля
             width: ((et - st) * setting.widthTimeX),
             height: (setting.timeLineY)
         });
@@ -114,8 +133,8 @@ $.fn.timeSchedule = function (options) {
         $bar.bind("mouseup", function () {
             // Call back if callback is set
             if (setting.click) {
-                if (jQuery(this).data("dragCheck") !== true && jQuery(this).data("resizeCheck") !== true) {
-                    let node = jQuery(this);
+                if ($(this).data("dragCheck") !== true && $(this).data("resizeCheck") !== true) {
+                    let node = $(this);
                     let sc_key = node.data("sc_key");
                     setting.click(node, scheduleData[sc_key]);
                 }
@@ -140,11 +159,11 @@ $.fn.timeSchedule = function (options) {
                 currentNode = node;
             },
             drag: function (event, ui) {
-                jQuery(this).data("dragCheck", true);
+                $(this).data("dragCheck", true);
                 if (!currentNode) {
                     return false;
                 }
-                let $moveNode = jQuery(this);
+                let $moveNode = $(this);
                 let sc_key = $moveNode.data("sc_key");
                 let originalTop = ui.originalPosition.top;
                 let originalLeft = ui.originalPosition.left;
@@ -175,10 +194,10 @@ $.fn.timeSchedule = function (options) {
             },
             // Processing after element movement has ended
             stop: function (event, ui) {
-                jQuery(this).data("dragCheck", false);
+                $(this).data("dragCheck", false);
                 currentNode = null;
 
-                let node = jQuery(this);
+                let node = $(this);
                 let sc_key = node.data("sc_key");
                 let x = node.position().left;
                 let w = node.width();
@@ -200,12 +219,12 @@ $.fn.timeSchedule = function (options) {
             grid: [setting.widthTimeX, setting.timeLineY],
             minWidth: setting.widthTimeX,
             start: function (event, ui) {
-                let node = jQuery(this);
+                let node = $(this);
                 node.data("resizeCheck", true);
             },
             // Processing after element movement has ended
             stop: function (event, ui) {
-                let node = jQuery(this);
+                let node = $(this);
                 let sc_key = node.data("sc_key");
                 let x = node.position().left;
                 let w = node.width();
@@ -249,7 +268,7 @@ $.fn.timeSchedule = function (options) {
 
         html = '';
         html += '<div class="timeline"><span>' + title + '</span></div>';
-        let $data = jQuery(html);
+        let $data = $(html);
         // event call
         if (setting.init_data) {
             setting.init_data($data, row);
@@ -258,21 +277,98 @@ $.fn.timeSchedule = function (options) {
 
         html = '';
         html += '<div class="timeline"></div>';
-        let $timeline = jQuery(html);
+
+        let $timeline = $(html);
+        $timeline.data('timeline-number', id);
+
         for (let t = tableStartTime; t < tableEndTime; t += setting.widthTime) {
-            let $tl = jQuery('<div class="tl"></div>');
+            let $tl = $('<div class="tl"></div>');
             $tl.width(setting.widthTimeX - setting.timeBorder);
 
             $tl.data("time", Utils.formatTime(t));
             $tl.data("timeline", timeline);
             $timeline.append($tl);
         }
+
+
+        //
+        // Timeline events
+        //
+
+        let $tlItem = $timeline.find(".tl"); // TODO в пределах всего виджета а не толко таймлайна
+        let lastMovedTarget = null;
+        let $startEl = null;
+
+        let self = this;
+
+        $tlItem
+            .on('mousedown', function () {
+                if (!$startEl) {
+                    $startEl = $(this);
+
+                    $tlItem.removeClass('marked-for-new-event');
+                    $startEl.addClass('marked-for-new-event');
+                }
+            })
+            .on('mouseup', function () {
+                if ($startEl) {
+                    $startEl = null;
+
+                    // TODO show new event dialog
+                    let $selectedTimeItems = $timeline.find('.tl.marked-for-new-event');
+                    if($selectedTimeItems.size()) {
+                        $tlItem.removeClass('marked-for-new-event');
+
+                        let startTime = $selectedTimeItems.first().data('time');
+                        let preEndTime = $selectedTimeItems.last().data('time'); //cuz this start of the element time
+                        let endTime = Utils.nextTenMinutes(preEndTime);
+
+                        self.addNewEvent({
+                            start: startTime,
+                            end: endTime,
+                            timeline: $timeline.data('timeline-number')
+                        });
+                    }
+                }
+            });
+
+        $tlItem.on('mousemove', function (e) { // mouse move while clicked right mouse btn
+            if (e.buttons === 1 && lastMovedTarget !== e.target) {
+                let $this = $(this);
+
+                lastMovedTarget = e.target; // cuz it doesn't work with $this
+
+                let $elementsForSelect;
+                let elementPosition = $this.docPosition($startEl);
+
+                if (elementPosition === 'before') {
+                    $elementsForSelect = $startEl.nextUntil($this);
+                } else if (elementPosition === 'after') {
+                    $elementsForSelect = $startEl.prevUntil($this);
+                }
+
+                if ($elementsForSelect) {
+                    $tlItem.removeClass('marked-for-new-event');
+                    $elementsForSelect.addClass('marked-for-new-event');
+                }
+                $startEl.addClass('marked-for-new-event');
+                $this.addClass('marked-for-new-event');
+
+                // console.log($this.data("time"), $this.data("timeline"), timelineData[$(this).data("timeline")]);
+            } else if (e.buttons === 0) {
+                $startEl = false;
+                // TODO show new event dialog ?
+            }
+        });
+
         // click event
         if (setting.time_click) {
-            $timeline.find(".tl").click(function () {
-                setting.time_click(this, jQuery(this).data("time"), jQuery(this).data("timeline"), timelineData[jQuery(this).data("timeline")]);
+            $tlItem.on('click', function () { // regular click
+                setting.time_click(this, $(this).data("time"), $(this).data("timeline"), timelineData[$(this).data("timeline")]);
             });
         }
+
+
         $element.find('.sc_main').append($timeline);
 
         timelineData[timeline] = row;
@@ -281,6 +377,7 @@ $.fn.timeSchedule = function (options) {
             $element.find('.sc_data .timeline').eq(id).addClass(row["class"]);
             $element.find('.sc_main .timeline').eq(id).addClass(row["class"]);
         }
+
         // Schedule timeline
         if (row["schedule"]) {
             for (let i in row["schedule"]) {
@@ -302,6 +399,7 @@ $.fn.timeSchedule = function (options) {
                 element.addScheduleData(data);
             }
         }
+
         // Adjust height
         element.resetBarPosition(id);
         $element.find('.sc_main .timeline').eq(id).droppable({
@@ -319,10 +417,11 @@ $.fn.timeSchedule = function (options) {
                 element.resetBarPosition(timelineNum);
             }
         });
+
         // Call back if callback is set
         if (setting.append) {
             $element.find('.sc_main .timeline').eq(id).find(".sc_Bar").each(function () {
-                let node = jQuery(this);
+                let node = $(this);
                 let sc_key = node.data("sc_key");
                 setting.append(node, scheduleData[sc_key]);
             });
@@ -333,14 +432,14 @@ $.fn.timeSchedule = function (options) {
 
         for (let i in timelineData) {
             if (typeof timelineData[i] == "undefined") continue;
-            let timeline = jQuery.extend(true, {}, timelineData[i]);
+            let timeline = $.extend(true, {}, timelineData[i]);
             timeline.schedule = [];
             data.push(timeline);
         }
 
         for (let i in scheduleData) {
             if (typeof scheduleData[i] == "undefined") continue;
-            let schedule = jQuery.extend(true, {}, scheduleData[i]);
+            let schedule = $.extend(true, {}, scheduleData[i]);
             schedule.start = Utils.formatTime(schedule.start);
             schedule.end = Utils.formatTime(schedule.end);
             let timelineIndex = schedule.timeline;
@@ -350,6 +449,7 @@ $.fn.timeSchedule = function (options) {
 
         return data;
     };
+
     // Change text
     this.rewriteBarText = function (node, data) {
         let x = node.position().left;
@@ -358,14 +458,14 @@ $.fn.timeSchedule = function (options) {
         //let end = tableStartTime + (Math.floor((x + w) / setting.widthTimeX) * setting.widthTime);
         let end = start + (data["end"] - data["start"]);
         let html = Utils.formatTime(start) + "-" + Utils.formatTime(end);
-        jQuery(node).find(".time").html(html);
+        $(node).find(".time").html(html);
     };
     this.resetBarPosition = function (n) {
         // reorder elements
         let $bar_list = $element.find('.sc_main .timeline').eq(n).find(".sc_Bar");
         let codes = [];
         for (let i = 0; i < $bar_list.length; i++) {
-            codes[i] = {code: i, x: jQuery($bar_list[i]).position().left};
+            codes[i] = {code: i, x: $($bar_list[i]).position().left};
         }
 
         // Sort
@@ -384,12 +484,12 @@ $.fn.timeSchedule = function (options) {
         let s1, e1, s2, e2;
         for (let i = 0; i < codes.length; i++) {
             c1 = codes[i]["code"];
-            $e1 = jQuery($bar_list[c1]);
+            $e1 = $($bar_list[c1]);
             for (h = 0; h < check.length; h++) {
                 let next = false;
                 L: for (let j = 0; j < check[h].length; j++) {
                     c2 = check[h][j];
-                    $e2 = jQuery($bar_list[c2]);
+                    $e2 = $($bar_list[c2]);
 
                     s1 = $e1.position().left;
                     e1 = $e1.position().left + $e1.width();
@@ -420,7 +520,7 @@ $.fn.timeSchedule = function (options) {
         $element.find('.sc_main .timeline').eq(n).height((h * setting.timeLineY) - setting.timeLineBorder + setting.timeLinePaddingTop + setting.timeLinePaddingBottom);
 
         $element.find('.sc_main .timeline').eq(n).find(".sc_bgBar").each(function () {
-            jQuery(this).height(jQuery(this).closest(".timeline").height());
+            $(this).height($(this).closest(".timeline").height());
         });
 
         $element.find(".sc_data").height($element.find(".sc_main_box").height());
@@ -478,9 +578,10 @@ $.fn.timeSchedule = function (options) {
             if (
                 (before_time < 0) ||
                 (Math.floor(before_time / 3600) != Math.floor(t / 3600))) {
+
                 let html = '';
                 html += '<div class="sc_time">' + Utils.formatTime(t) + '</div>';
-                let $time = jQuery(html);
+                let $time = $(html);
                 let cell_num = Math.floor(Number(Math.min((Math.ceil((t + setting.widthTime) / 3600) * 3600), tableEndTime) - t) / setting.widthTime);
                 $time.width((cell_num * setting.widthTimeX) - setting.headTimeBorder);
                 $element.find(".sc_header_scroll").append($time);
@@ -489,7 +590,7 @@ $.fn.timeSchedule = function (options) {
             }
         }
 
-        jQuery(window).resize(function () {
+        $(window).resize(function () {
             element.resizeWindow();
         }).trigger("resize");
 
@@ -516,12 +617,12 @@ $.fn.timeSchedule = function (options) {
 
             html += '</div>';
         }
-        jQuery(setting.debug).html(html);
+        $(setting.debug).html(html);
     };
     if (setting.debug && setting.debug != "") {
         setInterval(function () {
             element.debug();
-        }, 10);
+        }, 500);
     }
 
     return ( this );

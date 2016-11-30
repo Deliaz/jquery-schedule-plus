@@ -7,6 +7,10 @@ export function calcStringTime(string) {
     return min;
 }
 
+export function nextTenMinutes(timeString) {
+    return formatTime(calcStringTime(timeString) + 600);
+}
+
 export function formatTime(min) {
     let h = "" + (min / 36000 | 0) + (min / 3600 % 10 | 0);
     let i = "" + (min % 3600 / 600 | 0) + (min % 3600 / 60 % 10 | 0);

@@ -64,19 +64,19 @@
                 init_data: function (node, data) {
                 },
                 click: function (node, data) {
-                    console.log('click_event');
+                    console.log('click_event', node, data);
                 },
                 append: function (node, data) {
                 },
                 time_click: function (time, data) {
-                    console.log('time_click');
+//                    console.log('time_click', time, data);
                 }
             });
 
 
             $sc.addNewEvent({
                 "start": '8:00',
-                "end": '11:00',
+                "end": '8:50',
                 "text": "Text Area",
                 "data": {}
             });
