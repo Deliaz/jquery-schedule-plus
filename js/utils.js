@@ -18,3 +18,32 @@ export function formatTime(min) {
 
     return string;
 }
+
+export function docPosition(element1, element2) {
+    if (element2.jquery) element2 = element2[0];
+
+    var position = element1[0].compareDocumentPosition(element2);
+
+    if (position & 0x04) {
+        return 'after';
+    }
+    if (position & 0x02) {
+        return 'before';
+    }
+}
+
+export function serializeObject($form) {
+    var o = {};
+    var a = $form.serializeArray();
+    $.each(a, function () {
+        if (o[this.name] !== undefined) {
+            if (!o[this.name].push) {
+                o[this.name] = [o[this.name]];
+            }
+            o[this.name].push(this.value || '');
+        } else {
+            o[this.name] = this.value || '';
+        }
+    });
+    return o;
+}

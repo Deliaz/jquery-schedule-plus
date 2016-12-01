@@ -2,33 +2,6 @@ import * as Utils from './utils';
 import webuiPopoverConfGetter from './webui-popover-conf';
 import SELECTORS from './selectors';
 
-// TODO move to tools
-$.fn.docPosition = function (element) {
-    if (element.jquery) element = element[0];
-
-    var position = this[0].compareDocumentPosition(element);
-
-    if (position & 0x04) return 'after';
-    if (position & 0x02) return 'before';
-};
-
-$.fn.serializeObject = function()
-{
-    var o = {};
-    var a = this.serializeArray();
-    $.each(a, function() {
-        if (o[this.name] !== undefined) {
-            if (!o[this.name].push) {
-                o[this.name] = [o[this.name]];
-            }
-            o[this.name].push(this.value || '');
-        } else {
-            o[this.name] = this.value || '';
-        }
-    });
-    return o;
-};
-
 
 $.fn.timeSchedule = function (options) {
     const defaults = {
@@ -395,10 +368,14 @@ $.fn.timeSchedule = function (options) {
             if (e.buttons === 1 && lastMovedTarget !== e.target) {
                 let $this = $(this);
 
+                if(!$startEl) {
+                    return; //if user are resizing an event bar (bcuz it also mousedown + mousemove)
+                }
+
                 lastMovedTarget = e.target; // cuz it doesn't work with $this
 
                 let $elementsForSelect;
-                let elementPosition = $this.docPosition($startEl);
+                let elementPosition = Utils.docPosition($this, $startEl);
 
                 if (elementPosition === 'before') {
                     $elementsForSelect = $startEl.nextUntil($this);
@@ -413,8 +390,10 @@ $.fn.timeSchedule = function (options) {
                 $startEl.addClass('marked-for-new-event');
                 $this.addClass('marked-for-new-event');
             } else if (e.buttons === 0) {
-                $startEl = false;
-                // TODO show new event dialog ?
+                if($startEl) {
+                    $startEl = null;
+                    $tlItem.removeClass('marked-for-new-event');
+                }
             }
         });
 
@@ -677,7 +656,7 @@ $.fn.timeSchedule = function (options) {
             e.preventDefault();
 
             if(editableNode) {
-                let dataToSave = $(this).serializeObject(); // заголовок - поле title
+                let dataToSave = Utils.serializeObject($(this)); // заголовок - поле title
                 let sc_key = editableNode.data("sc_key");
                 let eventData = scheduleData[sc_key];
                 if(!eventData) {
