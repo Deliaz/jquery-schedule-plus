@@ -1,4 +1,5 @@
 import * as Utils from './utils';
+import webuiPopoverConf from './webui-popover-conf';
 
 $.fn.docPosition = function (element) {
     if (element.jquery) element = element[0];
@@ -88,7 +89,7 @@ $.fn.timeSchedule = function (options) {
      * Public
      * @param data
      */
-    this.addNewEvent = function (data) {
+    this.addNewEvent = function (data, isConfigurable) {
 
         let convertedData = {
             "timeline": data.timeline || 0,
@@ -98,11 +99,11 @@ $.fn.timeSchedule = function (options) {
             "data": data.data
         };
 
-        this.addScheduleData(convertedData);
+        this.addScheduleData(convertedData, isConfigurable);
     };
 
     // Add schedule
-    this.addScheduleData = function (data) {
+    this.addScheduleData = function (data, isConf) {
         let st = Math.ceil((data["start"] - tableStartTime) / setting.widthTime);
         let et = Math.floor((data["end"] - tableStartTime) / setting.widthTime);
         let $bar = $('<div class="sc_Bar"><span class="head"><span class="time"></span></span><span class="text"></span></div>');
@@ -124,6 +125,14 @@ $.fn.timeSchedule = function (options) {
         }
         //$element.find('.sc_main').append($bar);
         $element.find('.sc_main .timeline').eq(data["timeline"]).append($bar);
+
+        if(isConf) {
+            $bar.webuiPopover(webuiPopoverConf);
+            $bar.webuiPopover('show');
+        }
+
+
+
         // Add data
         scheduleData.push(data);
         // key
@@ -327,7 +336,7 @@ $.fn.timeSchedule = function (options) {
                             start: startTime,
                             end: endTime,
                             timeline: $timeline.data('timeline-number')
-                        });
+                        }, true);
                     }
                 }
             });
