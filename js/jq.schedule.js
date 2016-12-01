@@ -1,6 +1,8 @@
 import * as Utils from './utils';
-import webuiPopoverConf from './webui-popover-conf';
+import webuiPopoverConfGetter from './webui-popover-conf';
+import SELECTORS from './selectors';
 
+// TODO move to tools
 $.fn.docPosition = function (element) {
     if (element.jquery) element = element[0];
 
@@ -9,6 +11,24 @@ $.fn.docPosition = function (element) {
     if (position & 0x04) return 'after';
     if (position & 0x02) return 'before';
 };
+
+$.fn.serializeObject = function()
+{
+    var o = {};
+    var a = this.serializeArray();
+    $.each(a, function() {
+        if (o[this.name] !== undefined) {
+            if (!o[this.name].push) {
+                o[this.name] = [o[this.name]];
+            }
+            o[this.name].push(this.value || '');
+        } else {
+            o[this.name] = this.value || '';
+        }
+    });
+    return o;
+};
+
 
 $.fn.timeSchedule = function (options) {
     const defaults = {
@@ -44,15 +64,13 @@ $.fn.timeSchedule = function (options) {
     let tableStartTime = Utils.calcStringTime(setting.startTime);
     let tableEndTime = Utils.calcStringTime(setting.endTime);
     let currentNode = null;
+    let editableNode = null;
+
     tableStartTime -= (tableStartTime % setting.widthTime);
     tableEndTime -= (tableEndTime % setting.widthTime);
 
-    this.getScheduleData = function () {
-        return scheduleData;
-    };
-
     /**
-     * Return timeline data.
+     * Return timeline data
      * Public
      * @returns {Array}
      */
@@ -88,8 +106,9 @@ $.fn.timeSchedule = function (options) {
      * Add new event to timeline
      * Public
      * @param data
+     * @param {boolean} isManuallyNew if it was set manually
      */
-    this.addNewEvent = function (data, isConfigurable) {
+    this.addNewEvent = function (data, isManuallyNew) {
 
         let convertedData = {
             "timeline": data.timeline || 0,
@@ -99,11 +118,16 @@ $.fn.timeSchedule = function (options) {
             "data": data.data
         };
 
-        this.addScheduleData(convertedData, isConfigurable);
+        this.addScheduleData(convertedData, isManuallyNew);
     };
 
-    // Add schedule
-    this.addScheduleData = function (data, isConf) {
+    /**
+     * Add new event with converted data
+     * @param data {object} Converted data (see this.addNewEvent)
+     * @param [isManuallyNew] {boolean}
+     * @returns {number}
+     */
+    this.addScheduleData = function (data, isManuallyNew = false) {
         let st = Math.ceil((data["start"] - tableStartTime) / setting.widthTime);
         let et = Math.floor((data["end"] - tableStartTime) / setting.widthTime);
         let $bar = $('<div class="sc_Bar"><span class="head"><span class="time"></span></span><span class="text"></span></div>');
@@ -126,29 +150,41 @@ $.fn.timeSchedule = function (options) {
         //$element.find('.sc_main').append($bar);
         $element.find('.sc_main .timeline').eq(data["timeline"]).append($bar);
 
-        if(isConf) {
-            $bar.webuiPopover(webuiPopoverConf);
-            $bar.webuiPopover('show');
-        }
-
-
-
         // Add data
         scheduleData.push(data);
         // key
         let key = scheduleData.length - 1;
         $bar.data("sc_key", key);
 
-        $bar.bind("mouseup", function () {
-            // Call back if callback is set
-            if (setting.click) {
-                if ($(this).data("dragCheck") !== true && $(this).data("resizeCheck") !== true) {
-                    let node = $(this);
-                    let sc_key = node.data("sc_key");
-                    setting.click(node, scheduleData[sc_key]);
+
+        $bar.on("mouseup", function () {
+            let $this = $(this);
+
+            if ($this.data("dragCheck") !== true && $(this).data("resizeCheck") !== true) {
+                let sc_key = $this.data("sc_key");
+                let eventData = scheduleData[sc_key];
+
+                // Show this event settings
+                showEventSettings($this, eventData);
+
+                // Run 'click' callback if it was set
+                if (typeof setting.click === 'function') {
+                    setting.click($this, eventData);
                 }
             }
         });
+
+        // Set event popover with it's settings
+        $bar.webuiPopover(webuiPopoverConfGetter($element));
+        if (isManuallyNew) {
+            editableNode = $bar;
+            $bar.webuiPopover('show');
+
+            $element
+                .find(SELECTORS.eventTitleInput)
+                .focus();
+        }
+
 
         let $node = $element.find(".sc_Bar");
         // move node.
@@ -268,6 +304,19 @@ $.fn.timeSchedule = function (options) {
         }
         return num;
     };
+
+
+    /**
+     * Show settings for an event and set title
+     * @param $bar {object} jQuery element
+     * @param eventData {event} Event Data
+     */
+    function showEventSettings($bar, eventData) {
+        editableNode = $bar;
+        $bar.webuiPopover('show');
+        $element.find(SELECTORS.eventTitleInput).val(eventData.text);
+    }
+
     // add
     this.addRow = function (timeline, row) {
         let title = row["title"];
@@ -308,35 +357,36 @@ $.fn.timeSchedule = function (options) {
         let lastMovedTarget = null;
         let $startEl = null;
 
-        let self = this;
-
         $tlItem
             .on('mousedown', function () {
                 if (!$startEl) {
-                    $startEl = $(this);
+                    let $this = $(this);
+                    $startEl = $this;
+
+                    // Hide all event popovers
+                    WebuiPopovers.hideAll();
 
                     $tlItem.removeClass('marked-for-new-event');
                     $startEl.addClass('marked-for-new-event');
                 }
             })
-            .on('mouseup', function () {
+            .on('mouseup', () => {
                 if ($startEl) {
                     $startEl = null;
 
-                    // TODO show new event dialog
                     let $selectedTimeItems = $timeline.find('.tl.marked-for-new-event');
-                    if($selectedTimeItems.size()) {
+                    if ($selectedTimeItems.size()) {
                         $tlItem.removeClass('marked-for-new-event');
 
                         let startTime = $selectedTimeItems.first().data('time');
                         let preEndTime = $selectedTimeItems.last().data('time'); //cuz this start of the element time
                         let endTime = Utils.nextTenMinutes(preEndTime);
 
-                        self.addNewEvent({
+                        this.addNewEvent({
                             start: startTime,
                             end: endTime,
                             timeline: $timeline.data('timeline-number')
-                        }, true);
+                        }, true); // with "true" will show event settings popover
                     }
                 }
             });
@@ -362,8 +412,6 @@ $.fn.timeSchedule = function (options) {
                 }
                 $startEl.addClass('marked-for-new-event');
                 $this.addClass('marked-for-new-event');
-
-                // console.log($this.data("time"), $this.data("timeline"), timelineData[$(this).data("timeline")]);
             } else if (e.buttons === 0) {
                 $startEl = false;
                 // TODO show new event dialog ?
@@ -436,6 +484,12 @@ $.fn.timeSchedule = function (options) {
             });
         }
     };
+
+    /**
+     * Return schedule data
+     * Public
+     * @returns {Array}
+     */
     this.getScheduleData = function () {
         let data = [];
 
@@ -547,8 +601,16 @@ $.fn.timeSchedule = function (options) {
         $element.find(".sc_main_scroll").width(setting.widthTimeX * cell_num);
 
     };
-    // init
+
+    /**
+     * Start point
+     */
     this.init = function () {
+        this.renderData();
+        this.changeEventHandler();
+    };
+
+    this.renderData = function () {
         let html = '';
         html += '<div class="sc_menu">' + "\n";
         html += '<div class="sc_header_cell"><span>&nbsp;</span></div>' + "\n";
@@ -572,7 +634,7 @@ $.fn.timeSchedule = function (options) {
         html += '<br class="clear" />' + "\n";
         html += '</div>' + "\n";
 
-        $element.append(html);
+        $element.append(html); // TODO should it be .html ?
 
         $element.find(".sc_main_box").scroll(function () {
             $element.find(".sc_data_scroll").css("top", $(this).scrollTop() * -1);
@@ -609,22 +671,58 @@ $.fn.timeSchedule = function (options) {
             this.addRow(i, val);
         }.bind(this));
     };
+
+    this.changeEventHandler = () => {
+        $element.on('submit', SELECTORS.eventChangeForm, function(e) {
+            e.preventDefault();
+
+            if(editableNode) {
+                let dataToSave = $(this).serializeObject(); // заголовок - поле title
+                let sc_key = editableNode.data("sc_key");
+                let eventData = scheduleData[sc_key];
+                if(!eventData) {
+                    throw new Error('Editable event not found');
+                }
+                eventData.text = dataToSave.title;
+
+                // Update memory data
+                scheduleData[sc_key] = eventData;
+
+                // Update UI data
+                editableNode.find('.text').text(eventData.text);
+
+                // Hide event settings
+                editableNode.webuiPopover('hide');
+
+                editableNode = null;
+            } else {
+                throw new Error('Editable node not specified');
+            }
+        });
+
+        $element.on('click', SELECTORS.eventDeleteBtn, () => {
+            let sc_key = editableNode.data("sc_key");
+            delete(scheduleData[sc_key]); // delete will save keys
+
+            // Hide settings popover
+            editableNode.webuiPopover('hide');
+
+            // Delete from UI
+            editableNode.off();
+            editableNode.remove();
+
+            editableNode = null;
+        });
+    };
+
     // Initialization
     this.init();
 
     this.debug = function () {
         let html = '';
         for (let i in scheduleData) {
-            html += '<div>';
-
-            html += i + " : ";
-            let d = scheduleData[i];
-            for (let n in d) {
-                let dd = d[n];
-                html += n + " " + dd;
-            }
-
-            html += '</div>';
+            let propsString = Object.keys(scheduleData[i]).map(k => `${k}: ${scheduleData[i][k]} `).join(' ');
+            html += `<div style="font-size: smaller">[${i}] ${propsString}</div>`;
         }
         $(setting.debug).html(html);
     };
@@ -634,5 +732,5 @@ $.fn.timeSchedule = function (options) {
         }, 500);
     }
 
-    return ( this );
+    return (this);
 };

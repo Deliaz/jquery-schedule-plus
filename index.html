@@ -36,7 +36,7 @@
                             {
                                 start: '09:00',
                                 end: '12:00',
-                                text: 'Text Area',
+                                text: 'День',
                                 data: {}
                             },
 //                            {
@@ -53,9 +53,9 @@
                             {
                                 start: '16:00',
                                 end: '17:00',
-                                text: 'Text Area',
+                                text: 'Вечер',
                                 data: [
-                                    'fewfewfwe'
+                                    '123'
                                 ]
                             }
                         ]
@@ -80,9 +80,11 @@
             $sc.addNewEvent({
                 "start": '8:00',
                 "end": '8:50',
-                "text": "Text Area",
+                "text": "Утро",
                 "data": {}
             });
+
+            window.$sc = $sc;
         });
     </script>
 </head>
