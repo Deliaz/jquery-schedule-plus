@@ -183,6 +183,7 @@ $.fn.timeSchedule = function (options) {
                 if (!currentNode) {
                     return false;
                 }
+                WebuiPopovers.hideAll();
                 let $moveNode = $(this);
                 let sc_key = $moveNode.data("sc_key");
                 let originalTop = ui.originalPosition.top;
@@ -609,7 +610,9 @@ $.fn.timeSchedule = function (options) {
                 (Math.floor(before_time / 3600) != Math.floor(t / 3600))) {
 
                 let html = '';
-                html += '<div class="sc_time">' + Utils.formatTime(t) + '</div>';
+                html += `<div class="sc_time"> <div>${Utils.formatTime(t)}</div>`;
+                html += `<span>00</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span>`;
+                html += `</div>`;
                 let $time = $(html);
                 let cell_num = Math.floor(Number(Math.min((Math.ceil((t + setting.widthTime) / 3600) * 3600), tableEndTime) - t) / setting.widthTime);
                 $time.width((cell_num * setting.widthTimeX) - setting.headTimeBorder);

@@ -1,170 +1,215 @@
 body {
-	font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
 }
-#schedule{
+
+#schedule {
 }
-#schedule .clear{ clear:both; height: 0; line-height: 0;}
-#schedule .sc_wrapper{
+
+#schedule .clear {
+    clear: both;
+    height: 0;
+    line-height: 0;
 }
-#schedule .sc_menu{
-	width:100%;
-	height:26px;
+
+#schedule .sc_wrapper {
 }
-#schedule .sc_menu .sc_header_cell{
-	float:left;
+
+#schedule .sc_menu {
+    width: 100%;
 }
-#schedule .sc_menu .sc_header{
-	float:left;
-	height:26px;
-	position:relative;
-	overflow:hidden;
+
+#schedule .sc_menu .sc_header_cell {
+    float: left;
 }
-#schedule .sc_menu .sc_header .sc_time{
-	box-sizing: border-box;
-	text-align:center;
-	border-left:solid 1px #bbb;
-	background:#333;
+
+#schedule .sc_menu .sc_header {
+    float: left;
+    height: 40px;
+    margin-left: 160px;
+    position: relative;
+    overflow: hidden;
 }
+
+#schedule .sc_menu .sc_header .sc_time {
+    box-sizing: border-box;
+    text-align: center;
+    border-left: solid 1px #bbb;
+    background: #555;
+}
+
+#schedule .sc_menu .sc_header .sc_time span {
+    float: left;
+    width: 24px;
+    border-right: 1px solid #676767;
+    font-size: 12px;
+    color: #aaa;
+}
+#schedule .sc_menu .sc_header .sc_time span:last-child {
+    border-right: none;
+}
+
 #schedule .sc_menu .sc_header_cell,
-#schedule .sc_data{
-	float:left;
-	font-weight:bold;
-	color:#FFFFFF;
-	background:#333;
-	position:relative;
+#schedule .sc_data {
+    float: left;
+    font-weight: bold;
+    color: #FFFFFF;
+    background: #555;
+    position: relative;
 }
+
 #schedule .sc_menu .sc_header_scroll,
-#schedule .sc_data .sc_data_scroll{
-	position:absolute;
-	left:0;
-	top:0;
+#schedule .sc_data .sc_data_scroll {
+    position: absolute;
+    left: 0;
+    top: 0;
 }
+
 #schedule .sc_menu .sc_header_cell,
 #schedule .sc_header .sc_time,
-#schedule .sc_main_scroll .sc_time{
-	color:#FFFFFF;
-	padding:4px 0;
-	display:block;
+#schedule .sc_main_scroll .sc_time {
+    color: #FFFFFF;
+    padding: 4px 0;
+    display: block;
 }
+
 #schedule .sc_header .sc_time,
-#schedule .sc_main_scroll .sc_time{
-	float:left;
+#schedule .sc_main_scroll .sc_time {
+    float: left;
 }
+
 #schedule .sc_main_box,
-#schedule .sc_data{
-	max-height:500px;
-	overflow:hidden;
+#schedule .sc_data {
+    max-height: 500px;
+    overflow: hidden;
 }
-#schedule .sc_main_box{
-	float:left;
-	overflow-x:auto;
-	overflow-y:auto;
+
+#schedule .sc_main_box {
+    float: left;
+    overflow-x: auto;
+    overflow-y: auto;
 }
-#schedule .sc_main_scroll{
+
+#schedule .sc_main_scroll {
 }
-#schedule .sc_main{
-	position:relative;
+
+#schedule .sc_main {
+    position: relative;
 }
-#schedule .timeline{
-	position:relative;
+
+#schedule .timeline {
+    position: relative;
 }
-#schedule .sc_Bar{
-	position:absolute;
-	color:#FFF;
+
+#schedule .sc_Bar {
+    position: absolute;
+    color: #FFF;
     box-sizing: border-box;
 
-	background:#4f93d6;
-	cursor:pointer;
-	z-index:10;
-	box-shadow: 2px 2px 2px rgba(0,0,0,0.3);
+    background: #4f93d6;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.3);
 
     /*border-right: 4px solid #555;*/
     /*border-left: 4px solid #555;*/
 }
+
 #schedule .ui-draggable-dragging,
-#schedule .ui-resizeable{
-	z-index:20;
-}
-#schedule .sc_Bar .head{
-	display:block;
-	padding:6px 8px 0;
-	font-size:12px;
-	height:16px;
-	overflow:hidden;
-}
-#schedule .sc_Bar .text{
-	display:block;
-	padding:5px 15px 0;
-	font-weight:bold;
-	height:18px;
-	overflow:hidden;
-}
-#schedule .timeline,
-#schedule .sc_main .tb{
-	border-bottom:solid 2px #666;
-}
-#schedule .sc_data .timeline{
-	overflow:hidden;
-}
-#schedule .sc_data .timeline span{
-	padding:10px;
-	display:block;
-}
-#schedule .sc_data .timeline span.photo{
-	float:left;
-	width:36px;
-	height:36px;
-	padding:10px 0 10px 10px;
-}
-#schedule .sc_data .timeline span.title{
-	float:left;
-	padding:10px 0 10px 10px;
-	width:92px;
-}
-#schedule .sc_main_scroll .sc_main{
-}
-#schedule .sc_main_scroll .sc_main .tl{
-	float:left;
-	height:100%;
-	border-right:solid 1px #CCC;
-}
-#schedule .sc_main_scroll .sc_main .tl.marked-for-new-event {
-	background-color: #9bc0ff !important;
-	border-right:solid 1px #9bc0ff;
+#schedule .ui-resizeable {
+    z-index: 20;
 }
 
-#schedule .sc_main_scroll .sc_main .tl:hover{
-	background:#F0F0F0;
+#schedule .sc_Bar .head {
+    display: block;
+    padding: 6px 8px 0;
+    font-size: 12px;
+    height: 16px;
+    overflow: hidden;
+}
+
+#schedule .sc_Bar .text {
+    display: block;
+    padding: 5px 15px 0;
+    font-weight: bold;
+    height: 18px;
+    overflow: hidden;
+}
+
+#schedule .timeline,
+#schedule .sc_main .tb {
+    border-bottom: solid 2px #666;
+}
+
+#schedule .sc_data .timeline {
+    overflow: hidden;
+}
+
+#schedule .sc_data .timeline span {
+    padding: 10px;
+    display: block;
+}
+
+#schedule .sc_data .timeline span.photo {
+    float: left;
+    width: 36px;
+    height: 36px;
+    padding: 10px 0 10px 10px;
+}
+
+#schedule .sc_data .timeline span.title {
+    float: left;
+    padding: 10px 0 10px 10px;
+    width: 92px;
+}
+
+#schedule .sc_main_scroll .sc_main {
+}
+
+#schedule .sc_main_scroll .sc_main .tl {
+    float: left;
+    height: 100%;
+    border-right: solid 1px #CCC;
+}
+
+#schedule .sc_main_scroll .sc_main .tl.marked-for-new-event {
+    background-color: #9bc0ff !important;
+    border-right: solid 1px #9bc0ff;
+}
+
+#schedule .sc_main_scroll .sc_main .tl:hover {
+    background: #F0F0F0;
 }
 
 .event-edit-form > * {
-	box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 .event-title-input {
-	display: block;
-	width: 100%;
-	padding: 5px 7px;
-	border-radius: 3px;
-	border: 1px solid #bbb;
-	margin: 5px 0 15px;
+    display: block;
+    width: 100%;
+    padding: 5px 7px;
+    border-radius: 3px;
+    border: 1px solid #bbb;
+    margin: 5px 0 15px;
 }
 
 .event-save-button,
 .event-delete-button {
-	padding: 5px 12px;
-	border: none;
-	box-shadow: 1px 1px 1px rgba(0,0,0,0.4);
-	border-radius: 5px;
-	color: #fff;
-	cursor: pointer;
+    padding: 5px 12px;
+    border: none;
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
 }
+
 .event-save-button {
-	float: left;
-	background-color: rgba(20,180,20,1);
+    float: left;
+    background-color: rgba(20, 180, 20, 1);
 }
+
 .event-delete-button {
-	float: right;
-	padding: 5px 7px;
-	background-color: rgba(220,100,100,1);
+    float: right;
+    padding: 5px 7px;
+    background-color: rgba(220, 100, 100, 1);
 }
