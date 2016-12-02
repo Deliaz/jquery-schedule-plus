@@ -1,7 +1,7 @@
 const webpack = require('webpack');
 
 module.exports = {
-    entry: "./js/jq.schedule.js",
+    entry: "./src/",
     // watch: true, //webpack-dev-server --inline --hot
     watchOptions: {
         aggregateTimeout: 200
@@ -15,6 +15,10 @@ module.exports = {
             {
                 test: /\.js$/,
                 loader: "babel?presets[]=es2015"
+            },
+            {
+                test: /\.html$/,
+                loader: "html"
             }
         ]
     },

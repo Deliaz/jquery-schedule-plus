@@ -2,6 +2,8 @@ import * as Utils from './utils';
 import webuiPopoverConfGetter from './webui-popover-conf';
 import SELECTORS from './selectors';
 
+const tableLayoutHTML = require('./templates/table-layout.html');
+
 
 $.fn.timeSchedule = function (options) {
     const defaults = {
@@ -590,30 +592,7 @@ $.fn.timeSchedule = function (options) {
     };
 
     this.renderData = function () {
-        let html = '';
-        html += '<div class="sc_menu">' + "\n";
-        html += '<div class="sc_header_cell"><span>&nbsp;</span></div>' + "\n";
-        html += '<div class="sc_header">' + "\n";
-        html += '<div class="sc_header_scroll">' + "\n";
-        html += '</div>' + "\n";
-        html += '</div>' + "\n";
-        html += '<br class="clear" />' + "\n";
-        html += '</div>' + "\n";
-        html += '<div class="sc_wrapper">' + "\n";
-        html += '<div class="sc_data">' + "\n";
-        html += '<div class="sc_data_scroll">' + "\n";
-        html += '</div>' + "\n";
-        html += '</div>' + "\n";
-        html += '<div class="sc_main_box">' + "\n";
-        html += '<div class="sc_main_scroll">' + "\n";
-        html += '<div class="sc_main">' + "\n";
-        html += '</div>' + "\n";
-        html += '</div>' + "\n";
-        html += '</div>' + "\n";
-        html += '<br class="clear" />' + "\n";
-        html += '</div>' + "\n";
-
-        $element.append(html); // TODO should it be .html ?
+        $element.append(tableLayoutHTML);
 
         $element.find(".sc_main_box").scroll(function () {
             $element.find(".sc_data_scroll").css("top", $(this).scrollTop() * -1);

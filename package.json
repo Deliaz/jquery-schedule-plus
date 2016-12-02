@@ -9,6 +9,7 @@
   "author": "Deliaz",
   "license": "ISC",
   "dependencies": {
+    "html-loader": "^0.4.4",
     "jquery": "^3.1.1",
     "webpack": "^1.13.3",
     "webpack-dev-server": "^1.16.2",
