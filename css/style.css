@@ -133,6 +133,8 @@ body {
     font-weight: bold;
     height: 18px;
     overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 #schedule .timeline,
