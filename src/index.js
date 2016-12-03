@@ -590,6 +590,7 @@ $.fn.timeSchedule = function (options) {
     this.init = function () {
         this.renderData();
         this.changeEventHandler();
+        this.currentDayProgress();
     };
 
     this.renderData = function () {
@@ -609,10 +610,14 @@ $.fn.timeSchedule = function (options) {
                 (before_time < 0) ||
                 (Math.floor(before_time / 3600) != Math.floor(t / 3600))) {
 
-                let html = '';
-                html += `<div class="sc_time"> <div>${Utils.formatTime(t)}</div>`;
-                html += `<span>00</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span>`;
-                html += `</div>`;
+                let html = `
+                <div class="sc_time"> 
+                    <div class="time-data">
+                        <div>${Utils.formatTime(t)}</div>
+                        <span>00</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span>
+                    </div>
+                </div>
+                `;
                 let $time = $(html);
                 let cell_num = Math.floor(Number(Math.min((Math.ceil((t + setting.widthTime) / 3600) * 3600), tableEndTime) - t) / setting.widthTime);
                 $time.width((cell_num * setting.widthTimeX) - setting.headTimeBorder);
@@ -674,6 +679,25 @@ $.fn.timeSchedule = function (options) {
 
             editableNode = null;
         });
+    };
+
+
+    this.currentDayProgress = function() {
+        let date = new Date();
+        let startHour = +setting.startTime.split(':')[0];
+        let fullRowsCount = date.getHours() - startHour;
+        let minutePercentage = date.getMinutes() / 60 * 100;
+
+        let $rows = $('.sc_time');
+        for(let i = 0; i < fullRowsCount; i++) {
+            $rows.eq(i).addClass('past-time')
+        }
+
+        $rows
+            .eq(fullRowsCount)
+            .append('<div class="minutes-percentage"></div>')
+            .find('.minutes-percentage')
+            .width(`${minutePercentage}%`);
     };
 
     // Initialization
