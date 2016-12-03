@@ -22,8 +22,8 @@
 
         jQuery(document).ready(function () {
             var $sc = jQuery("#schedule").timeSchedule({
-                startTime: "10:00", // schedule start time(HH:ii)
-                endTime: "21:00",   // schedule end time(HH:ii)
+                startTime: "9:00", // schedule start time(HH:ii)
+                endTime: "18:00",   // schedule end time(HH:ii)
                 widthTime: 60 * 10,  // cell timestamp example 10 minutes
                 timeLineY: 60,       // height(px)
                 verticalScrollbar: 20,   // scrollbar (px)
@@ -65,12 +65,12 @@
                     }
                 ],
                 change: function (node, data) {
-                    console.log('change_event');
+//                    console.log('change_event');
                 },
                 init_data: function (node, data) {
                 },
                 click: function (node, data) {
-                    console.log('click_event', node, data);
+//                    console.log('click_event', node, data);
                 },
                 append: function (node, data) {
                 },

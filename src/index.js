@@ -40,6 +40,8 @@ $.fn.timeSchedule = function (options) {
     let tableEndTime = Utils.calcStringTime(setting.endTime);
     let currentNode = null;
     let editableNode = null;
+    let currentTime = null;
+    let currentTimeLeftBorder = null;
 
     tableStartTime -= (tableStartTime % setting.widthTime);
     tableEndTime -= (tableEndTime % setting.widthTime);
@@ -96,6 +98,21 @@ $.fn.timeSchedule = function (options) {
         this.addScheduleData(convertedData, isManuallyNew);
     };
 
+    this.getBarTime = function ($bar) {
+        let sc_key = $bar.data('sc_key');
+        let x = $bar.position().left;
+        let w = $bar.width();
+        let startTime = tableStartTime + (Math.floor(x / setting.widthTimeX) * setting.widthTime);
+        let endTime = tableStartTime + (Math.floor((x + w) / setting.widthTimeX) * setting.widthTime);
+
+        return {startTime, endTime};
+    };
+
+    this.isEventCanBeMoved = function ($bar) {
+        let startTime = this.getBarTime($bar).startTime;
+        return startTime > currentTime;
+    };
+
     /**
      * Add new event with converted data
      * @param data {object} Converted data (see this.addNewEvent)
@@ -132,7 +149,7 @@ $.fn.timeSchedule = function (options) {
         $bar.data("sc_key", key);
 
 
-        $bar.on("mouseup", function () {
+        $bar.on("mouseup", function (e) {
             let $this = $(this);
 
             if ($this.data("dragCheck") !== true && $(this).data("resizeCheck") !== true) {
@@ -140,7 +157,7 @@ $.fn.timeSchedule = function (options) {
                 let eventData = scheduleData[sc_key];
 
                 // Show this event settings
-                showEventSettings($this, eventData);
+                // showEventSettings($this, eventData); // TODO only when real click
 
                 // Run 'click' callback if it was set
                 if (typeof setting.click === 'function') {
@@ -159,7 +176,6 @@ $.fn.timeSchedule = function (options) {
                 .find(SELECTORS.eventTitleInput)
                 .focus();
         }
-
 
         let $node = $element.find(".sc_Bar");
         // move node.
@@ -185,37 +201,40 @@ $.fn.timeSchedule = function (options) {
                 }
                 WebuiPopovers.hideAll();
                 let $moveNode = $(this);
+
                 let sc_key = $moveNode.data("sc_key");
                 let originalTop = ui.originalPosition.top;
                 let originalLeft = ui.originalPosition.left;
                 let positionTop = ui.position.top;
                 let positionLeft = ui.position.left;
                 let timelineNum = element.getTimeLineNumber(ui.position.top);
-                // fix position
+
+
+                // Uncomment if you want to get hard fixed position
                 //ui.position.top = Math.floor(ui.position.top / setting.timeLineY) * setting.timeLineY;
-                //ui.position.top = element.getScheduleCount(timelineNum) * setting.timeLineY;
+
                 ui.position.left = Math.floor(ui.position.left / setting.widthTimeX) * setting.widthTimeX;
 
+                // min position by current time
+                if (ui.position.left <= currentTimeLeftBorder) {
+                    ui.position.left = currentTimeLeftBorder;
+                }
 
-                //$moveNode.find(".text").text(timelineNum+" "+(element.getScheduleCount(timelineNum) + 1));
-                if (currentNode["nowTimeline"] != timelineNum) {
-                    // Adjust height
-                    //element.resizeRow(currentNode["nowTimeline"],element.getScheduleCount(currentNode["nowTimeline"]));
-                    //element.resizeRow(timelineNum,element.getScheduleCount(timelineNum) + 1);
-                    // Current timeline
+
+                if (currentNode["nowTimeline"] !== timelineNum) {
                     currentNode["nowTimeline"] = timelineNum;
-                } else {
-                    //ui.position.top = currentNode["currentTop"];
                 }
                 currentNode["currentTop"] = ui.position.top;
                 currentNode["currentLeft"] = ui.position.left;
                 // Text change
                 element.rewriteBarText($moveNode, scheduleData[sc_key]);
+
                 return true;
             },
             // Processing after element movement has ended
             stop: function (event, ui) {
                 $(this).data("dragCheck", false);
+
                 currentNode = null;
 
                 let node = $(this);
@@ -235,17 +254,32 @@ $.fn.timeSchedule = function (options) {
                 }
             }
         });
+
+        let self = this;
         $node.resizable({
             handles: 'e, w', // East (right) and West (left),
             grid: [setting.widthTimeX, setting.timeLineY],
             minWidth: setting.widthTimeX,
             start: function (event, ui) {
-                let node = $(this);
-                node.data("resizeCheck", true);
+                let $node = $(this);
+                if (ui.position.left <= currentTimeLeftBorder && event.toElement.matches('.ui-resizable-w')) {
+                    $node.trigger('mouseup');
+                    return false;
+                }
+
+                $node.data("resizeCheck", true);
             },
+            // resize: function (event, ui) {
+            //     let $node = $(this);
+            //     console.log(event);
+            //     if (ui.position.left <= currentTimeLeftBorder && $(event.toElement).position().left <= ui.position.left)  {
+            //         $node.trigger('mouseup');
+            //     }
+            // },
             // Processing after element movement has ended
             stop: function (event, ui) {
                 let node = $(this);
+
                 let sc_key = node.data("sc_key");
                 let x = node.position().left;
                 let w = node.width();
@@ -270,6 +304,7 @@ $.fn.timeSchedule = function (options) {
         });
         return key;
     };
+
     // Acquire schedule number
     this.getScheduleCount = function (n) {
         let num = 0;
@@ -371,7 +406,7 @@ $.fn.timeSchedule = function (options) {
             if (e.buttons === 1 && lastMovedTarget !== e.target) {
                 let $this = $(this);
 
-                if(!$startEl) {
+                if (!$startEl) {
                     return; //if user are resizing an event bar (bcuz it also mousedown + mousemove)
                 }
 
@@ -393,7 +428,7 @@ $.fn.timeSchedule = function (options) {
                 $startEl.addClass('marked-for-new-event');
                 $this.addClass('marked-for-new-event');
             } else if (e.buttons === 0) {
-                if($startEl) {
+                if ($startEl) {
                     $startEl = null;
                     $tlItem.removeClass('marked-for-new-event');
                 }
@@ -590,7 +625,7 @@ $.fn.timeSchedule = function (options) {
     this.init = function () {
         this.renderData();
         this.changeEventHandler();
-        this.currentDayProgress();
+        this.showCurrentTimeProgress();
     };
 
     this.renderData = function () {
@@ -639,14 +674,14 @@ $.fn.timeSchedule = function (options) {
     };
 
     this.changeEventHandler = () => {
-        $element.on('submit', SELECTORS.eventChangeForm, function(e) {
+        $element.on('submit', SELECTORS.eventChangeForm, function (e) {
             e.preventDefault();
 
-            if(editableNode) {
+            if (editableNode) {
                 let dataToSave = Utils.serializeObject($(this)); // заголовок - поле title
                 let sc_key = editableNode.data("sc_key");
                 let eventData = scheduleData[sc_key];
-                if(!eventData) {
+                if (!eventData) {
                     throw new Error('Editable event not found');
                 }
                 eventData.text = dataToSave.title;
@@ -682,14 +717,22 @@ $.fn.timeSchedule = function (options) {
     };
 
 
-    this.currentDayProgress = function() {
+    this.showCurrentTimeProgress = function () {
         let date = new Date();
-        let startHour = +setting.startTime.split(':')[0];
-        let fullRowsCount = date.getHours() - startHour;
-        let minutePercentage = date.getMinutes() / 60 * 100;
+        let hours = 10 || date.getHours(); // TODO
+        let minutes = 32 || date.getMinutes(); // TODO
 
-        let $rows = $('.sc_time');
-        for(let i = 0; i < fullRowsCount; i++) {
+        currentTime = Utils.calcStringTime(`${hours}:${minutes - minutes % 10}`);
+
+        let startHour = +setting.startTime.split(':')[0];
+        let fullRowsCount = hours - startHour;
+        let fullCellsCount = fullRowsCount * 6 + (minutes - minutes % 10) / 10; // one time row contains 6 time cells
+        let minutePercentage = minutes / 60 * 100;
+
+        currentTimeLeftBorder = fullCellsCount * 25; // 25 - cell width
+
+        let $rows = $element.find('.sc_time');
+        for (let i = 0; i < fullRowsCount; i++) {
             $rows.eq(i).addClass('past-time')
         }
 
@@ -698,6 +741,15 @@ $.fn.timeSchedule = function (options) {
             .append('<div class="minutes-percentage"></div>')
             .find('.minutes-percentage')
             .width(`${minutePercentage}%`);
+
+        let $timelines = $element.find('.timeline.ui-droppable');
+        $timelines.each(function () {
+            let $timeCells = $(this).find('.tl');
+
+            for (let i = 0; i < fullCellsCount; i++) {
+                $timeCells.eq(i).addClass('drag-disabled');
+            }
+        });
     };
 
     // Initialization

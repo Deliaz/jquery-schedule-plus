@@ -20,9 +20,10 @@ export function formatTime(min) {
 }
 
 export function docPosition(element1, element2) {
+    if (element1.jquery) element1 = element1[0];
     if (element2.jquery) element2 = element2[0];
 
-    var position = element1[0].compareDocumentPosition(element2);
+    var position = element1.compareDocumentPosition(element2);
 
     if (position & 0x04) {
         return 'after';
