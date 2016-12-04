@@ -79,8 +79,8 @@ body {
 }
 
 #schedule .sc_data {
-    background-color: #f2f2f2;
-    color: #555;
+    background-color: #afafaf;
+    color: #FFF;
 }
 
 #schedule .sc_menu .sc_header_scroll,
@@ -133,14 +133,12 @@ body {
 #schedule .sc_Bar {
     position: absolute;
     color: #FFF;
-    box-sizing: border-box;
 
     background: #4f93d6;
     cursor: pointer;
     z-index: 10;
     box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.3);
-
-    /*border-right: 4px solid #555;*/
+    border-right: 4px solid #395ac1;
     /*border-left: 4px solid #555;*/
 }
 
@@ -208,8 +206,11 @@ body {
     border-right: solid 1px #9bc0ff;
 }
 
-#schedule .sc_main_scroll .sc_main .tl:hover {
-    background: #F0F0F0;
+#schedule .sc_main_scroll .sc_main .tl:hover:not(.create-disabled) {
+    background: #F0F0FF;
+}
+#schedule .sc_main_scroll .sc_main .tl.create-disabled {
+    background: #e4e4e4;
 }
 
 .event-edit-form > * {

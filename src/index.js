@@ -3,6 +3,7 @@ import webuiPopoverConfGetter from './webui-popover-conf';
 import SELECTORS from './selectors';
 
 const tableLayoutHTML = require('./templates/table-layout.html');
+const tableHeaderHTML = require('./templates/table-header.html');
 
 
 $.fn.timeSchedule = function (options) {
@@ -20,6 +21,7 @@ $.fn.timeSchedule = function (options) {
         headTimeBorder: 0,	// time border width
         dataWidth: 160,		// data width
         verticalScrollbar: 0,	// vertical scrollbar width
+        resizeBorderWidth: 4, // Resize border width
 
         // event
         init_data: null,
@@ -129,7 +131,7 @@ $.fn.timeSchedule = function (options) {
         $bar.css({
             left: (st * setting.widthTimeX),
             top: 0, //((snum * setting.timeLineY) + setting.timeLinePaddingTop), // это влияет на отступ блока внутри собственного таймлайна. тупо что он отличный был от нуля
-            width: ((et - st) * setting.widthTimeX),
+            width: ((et - st) * setting.widthTimeX - setting.resizeBorderWidth), //
             height: (setting.timeLineY)
         });
         $bar.find(".time").text(stext + "-" + etext);
@@ -256,26 +258,38 @@ $.fn.timeSchedule = function (options) {
         });
 
         let self = this;
+        let lastSuccessfullWidth = null;
         $node.resizable({
-            handles: 'e, w', // East (right) and West (left),
+            handles: 'e', // East (right) and West (left),
             grid: [setting.widthTimeX, setting.timeLineY],
             minWidth: setting.widthTimeX,
             start: function (event, ui) {
                 let $node = $(this);
                 if (ui.position.left <= currentTimeLeftBorder && event.toElement.matches('.ui-resizable-w')) {
                     $node.trigger('mouseup');
+                    event.preventDefault();
+                    $node.data("resizeCheck", false);
+                    $node.removeClass('ui-resizable-resizing');
                     return false;
                 }
 
                 $node.data("resizeCheck", true);
             },
-            // resize: function (event, ui) {
-            //     let $node = $(this);
-            //     console.log(event);
-            //     if (ui.position.left <= currentTimeLeftBorder && $(event.toElement).position().left <= ui.position.left)  {
-            //         $node.trigger('mouseup');
-            //     }
-            // },
+            resize: function (event, ui) {
+                // let $node = $(this);
+                // if (ui.position.left <= currentTimeLeftBorder
+                //     && ($(event.toElement).position().left <= ui.position.left && !$(event.toElement).is('span.text')))  {
+                //
+                //     ui.position.left = currentTimeLeftBorder;
+                //     ui.size.width = lastSuccessfullWidth;
+                //     $node.data("resizeCheck", false);
+                //     $node.removeClass('ui-resizable-resizing');
+                //     $node.trigger('mouseup');
+                //     return false;
+                // }
+                //
+                // lastSuccessfullWidth = ui.size.width;
+            },
             // Processing after element movement has ended
             stop: function (event, ui) {
                 let node = $(this);
@@ -372,13 +386,14 @@ $.fn.timeSchedule = function (options) {
             .on('mousedown', function () {
                 if (!$startEl) {
                     let $this = $(this);
-                    $startEl = $this;
-
                     // Hide all event popovers
                     WebuiPopovers.hideAll();
 
-                    $tlItem.removeClass('marked-for-new-event');
-                    $startEl.addClass('marked-for-new-event');
+                    if(!$this.is('.create-disabled')) {
+                        $startEl = $this;
+                        $tlItem.removeClass('marked-for-new-event');
+                        $startEl.addClass('marked-for-new-event');
+                    }
                 }
             })
             .on('mouseup', () => {
@@ -406,7 +421,7 @@ $.fn.timeSchedule = function (options) {
             if (e.buttons === 1 && lastMovedTarget !== e.target) {
                 let $this = $(this);
 
-                if (!$startEl) {
+                if (!$startEl || $this.is('.create-disabled')) {
                     return; //if user are resizing an event bar (bcuz it also mousedown + mousemove)
                 }
 
@@ -645,15 +660,7 @@ $.fn.timeSchedule = function (options) {
                 (before_time < 0) ||
                 (Math.floor(before_time / 3600) != Math.floor(t / 3600))) {
 
-                let html = `
-                <div class="sc_time"> 
-                    <div class="time-data">
-                        <div>${Utils.formatTime(t)}</div>
-                        <span>00</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span>
-                    </div>
-                </div>
-                `;
-                let $time = $(html);
+                let $time = $(tableHeaderHTML.replace('{{formatTime}}', Utils.formatTime(t)));
                 let cell_num = Math.floor(Number(Math.min((Math.ceil((t + setting.widthTime) / 3600) * 3600), tableEndTime) - t) / setting.widthTime);
                 $time.width((cell_num * setting.widthTimeX) - setting.headTimeBorder);
                 $element.find(".sc_header_scroll").append($time);
@@ -747,7 +754,7 @@ $.fn.timeSchedule = function (options) {
             let $timeCells = $(this).find('.tl');
 
             for (let i = 0; i < fullCellsCount; i++) {
-                $timeCells.eq(i).addClass('drag-disabled');
+                $timeCells.eq(i).addClass('create-disabled');
             }
         });
     };
