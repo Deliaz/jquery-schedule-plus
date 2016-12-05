@@ -6,6 +6,7 @@ export default function getConfig($container) {
     return {
         container: $container || document.body,
         content: webuiPopoverHTML,
+        placement: 'bottom',
         trigger: 'manual',
         animation: 'fade',
         closeable: true,

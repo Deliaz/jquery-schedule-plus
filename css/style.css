@@ -142,6 +142,10 @@ body {
     /*border-left: 4px solid #555;*/
 }
 
+#schedule .sc_Bar.past-event {
+    background: #6a8496;
+}
+
 #schedule .ui-draggable-dragging,
 #schedule .ui-resizeable {
     z-index: 20;

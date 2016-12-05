@@ -128,8 +128,9 @@ $.fn.timeSchedule = function (options) {
         let stext = Utils.formatTime(data["start"]);
         let etext = Utils.formatTime(data["end"]);
         let snum = data["timeline"];
+        let positionFromLeft = st * setting.widthTimeX;
         $bar.css({
-            left: (st * setting.widthTimeX),
+            left: positionFromLeft,
             top: 0, //((snum * setting.timeLineY) + setting.timeLinePaddingTop), // это влияет на отступ блока внутри собственного таймлайна. тупо что он отличный был от нуля
             width: ((et - st) * setting.widthTimeX - setting.resizeBorderWidth), //
             height: (setting.timeLineY)
@@ -159,7 +160,7 @@ $.fn.timeSchedule = function (options) {
                 let eventData = scheduleData[sc_key];
 
                 // Show this event settings
-                // showEventSettings($this, eventData); // TODO only when real click
+                showEventSettings($this, eventData); // TODO only when real click
 
                 // Run 'click' callback if it was set
                 if (typeof setting.click === 'function') {
@@ -179,8 +180,18 @@ $.fn.timeSchedule = function (options) {
                 .focus();
         }
 
-        let $node = $element.find(".sc_Bar");
-        // move node.
+        if(positionFromLeft > currentTimeLeftBorder) {
+            makeNodeDraggable($bar);
+            makeNodeResizeible($bar);
+        } else {
+            $bar.addClass('past-event');
+        }
+
+        return key;
+    };
+
+
+    function makeNodeDraggable($node) {
         $node.draggable({
             grid: [setting.widthTimeX, 1],
             containment: ".sc_main",
@@ -256,9 +267,9 @@ $.fn.timeSchedule = function (options) {
                 }
             }
         });
+    }
 
-        let self = this;
-        let lastSuccessfullWidth = null;
+    function makeNodeResizeible($node) {
         $node.resizable({
             handles: 'e', // East (right) and West (left),
             grid: [setting.widthTimeX, setting.timeLineY],
@@ -316,8 +327,7 @@ $.fn.timeSchedule = function (options) {
                 }
             }
         });
-        return key;
-    };
+    }
 
     // Acquire schedule number
     this.getScheduleCount = function (n) {
