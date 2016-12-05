@@ -5,6 +5,8 @@ import SELECTORS from './selectors';
 const tableLayoutHTML = require('./templates/table-layout.ejs')();
 const tableHeaderHTML = require('./templates/table-header.ejs')();
 
+const styles = require('./scss/main.scss');
+
 const webUIPopoverTemplateFn = require('./templates/webui-popover.ejs');
 
 $.fn.timeSchedule = function (options) {
