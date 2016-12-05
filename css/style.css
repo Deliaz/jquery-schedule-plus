@@ -143,7 +143,8 @@ body {
 }
 
 #schedule .sc_Bar.past-event {
-    background: #6a8496;
+    background: #7b858c;
+    border-right-color: #7b858c;
 }
 
 #schedule .ui-draggable-dragging,
@@ -249,4 +250,10 @@ body {
     float: right;
     padding: 5px 7px;
     background-color: rgba(220, 100, 100, 1);
+}
+
+.event-edit-form button[disabled] {
+    cursor: default;
+    pointer-events: none;
+    display: none;
 }

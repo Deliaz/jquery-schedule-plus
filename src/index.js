@@ -2,9 +2,10 @@ import * as Utils from './utils';
 import webuiPopoverConfGetter from './webui-popover-conf';
 import SELECTORS from './selectors';
 
-const tableLayoutHTML = require('./templates/table-layout.html');
-const tableHeaderHTML = require('./templates/table-header.html');
+const tableLayoutHTML = require('./templates/table-layout.ejs')();
+const tableHeaderHTML = require('./templates/table-header.ejs')();
 
+const webUIPopoverTemplateFn = require('./templates/webui-popover.ejs');
 
 $.fn.timeSchedule = function (options) {
     const defaults = {
@@ -129,6 +130,7 @@ $.fn.timeSchedule = function (options) {
         let etext = Utils.formatTime(data["end"]);
         let snum = data["timeline"];
         let positionFromLeft = st * setting.widthTimeX;
+        let isAvailableToModify = positionFromLeft > currentTimeLeftBorder;
         $bar.css({
             left: positionFromLeft,
             top: 0, //((snum * setting.timeLineY) + setting.timeLinePaddingTop), // это влияет на отступ блока внутри собственного таймлайна. тупо что он отличный был от нуля
@@ -160,7 +162,7 @@ $.fn.timeSchedule = function (options) {
                 let eventData = scheduleData[sc_key];
 
                 // Show this event settings
-                showEventSettings($this, eventData); // TODO only when real click
+                showEventSettings($this, eventData, positionFromLeft < currentTimeLeftBorder);
 
                 // Run 'click' callback if it was set
                 if (typeof setting.click === 'function') {
@@ -170,17 +172,17 @@ $.fn.timeSchedule = function (options) {
         });
 
         // Set event popover with it's settings
-        $bar.webuiPopover(webuiPopoverConfGetter($element));
         if (isManuallyNew) {
             editableNode = $bar;
-            $bar.webuiPopover('show');
+
+            showEventSettings($bar);
 
             $element
                 .find(SELECTORS.eventTitleInput)
                 .focus();
         }
 
-        if(positionFromLeft > currentTimeLeftBorder) {
+        if (isAvailableToModify) {
             makeNodeDraggable($bar);
             makeNodeResizeible($bar);
         } else {
@@ -344,11 +346,16 @@ $.fn.timeSchedule = function (options) {
     /**
      * Show settings for an event and set title
      * @param $bar {object} jQuery element
-     * @param eventData {event} Event Data
+     * @param [eventData] {event} Event Data
+     * @param [isDisabled] {boolean} Is buttons disabled ?
      */
-    function showEventSettings($bar, eventData) {
+    function showEventSettings($bar, eventData = {}, isDisabled = false) {
         editableNode = $bar;
-        $bar.webuiPopover('show');
+        let defaultOpts = webuiPopoverConfGetter($element.get(0));
+        let options = $.extend({}, defaultOpts, {
+            content: webUIPopoverTemplateFn({disabled: isDisabled})
+        });
+        WebuiPopovers.show($bar.get(0), options);
         $element.find(SELECTORS.eventTitleInput).val(eventData.text);
     }
 
@@ -388,7 +395,7 @@ $.fn.timeSchedule = function (options) {
         // Timeline events
         //
 
-        let $tlItem = $timeline.find(".tl"); // TODO в пределах всего виджета а не толко таймлайна
+        let $tlItem = $timeline.find(".tl");
         let lastMovedTarget = null;
         let $startEl = null;
 
@@ -399,7 +406,7 @@ $.fn.timeSchedule = function (options) {
                     // Hide all event popovers
                     WebuiPopovers.hideAll();
 
-                    if(!$this.is('.create-disabled')) {
+                    if (!$this.is('.create-disabled')) {
                         $startEl = $this;
                         $tlItem.removeClass('marked-for-new-event');
                         $startEl.addClass('marked-for-new-event');

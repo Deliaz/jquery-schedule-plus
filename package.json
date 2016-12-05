@@ -9,6 +9,7 @@
   "author": "Deliaz",
   "license": "ISC",
   "dependencies": {
+    "ejs-compiled-loader": "^1.1.0",
     "html-loader": "^0.4.4",
     "jquery": "^3.1.1",
     "node-sass": "^3.13.0",
