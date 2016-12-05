@@ -1,11 +1,9 @@
-import SELECTORS from './selectors';
-
 export default function getConfig($container) {
     return {
         container: $container || document.body,
         placement: 'bottom',
         trigger: 'manual',
-        animation: 'fade',
+        // animation: 'fade',
         closeable: true,
         multi: false,
         dismissible: true,
@@ -16,7 +14,7 @@ export default function getConfig($container) {
         },
 
         onHide: $element => {
-            $element.find(SELECTORS.eventTitleInput).val('');
+
         }
     }
 

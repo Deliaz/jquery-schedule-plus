@@ -222,7 +222,8 @@ body {
     box-sizing: border-box;
 }
 
-.event-title-input {
+.event-title-input,
+.event-comment-textarea {
     display: block;
     width: 100%;
     padding: 5px 7px;
@@ -241,15 +242,32 @@ body {
     cursor: pointer;
 }
 
+.event-cancel-link {
+    font-size: 12px;
+    float: left;
+    margin-left: 5px;
+    color: #79b3d0;
+    padding: 5px 7px;
+}
+.event-cancel-link:hover {
+    color: #5984bb;
+}
+
 .event-save-button {
     float: left;
     background-color: rgba(20, 180, 20, 1);
+}
+.event-save-button:hover {
+    background-color: rgba(20, 160, 20, 1);
 }
 
 .event-delete-button {
     float: right;
     padding: 5px 7px;
     background-color: rgba(220, 100, 100, 1);
+}
+.event-delete-button:hover {
+    background-color: rgba(180, 100, 100, 1);
 }
 
 .event-edit-form button[disabled] {

@@ -356,7 +356,13 @@ $.fn.timeSchedule = function (options) {
             content: webUIPopoverTemplateFn({disabled: isDisabled})
         });
         WebuiPopovers.show($bar.get(0), options);
+
         $element.find(SELECTORS.eventTitleInput).val(eventData.text);
+        if(eventData.data && eventData.data.comment) {
+            $element.find(SELECTORS.eventTitleTextarea).val(eventData.data.comment);
+        } else {
+            $element.find(SELECTORS.eventTitleTextarea).val('');
+        }
     }
 
     // add
@@ -709,6 +715,9 @@ $.fn.timeSchedule = function (options) {
                     throw new Error('Editable event not found');
                 }
                 eventData.text = dataToSave.title;
+                eventData.data = {
+                    comment: dataToSave.comment
+                };
 
                 // Update memory data
                 scheduleData[sc_key] = eventData;
@@ -782,7 +791,7 @@ $.fn.timeSchedule = function (options) {
     this.debug = function () {
         let html = '';
         for (let i in scheduleData) {
-            let propsString = Object.keys(scheduleData[i]).map(k => `${k}: ${scheduleData[i][k]} `).join(' ');
+            let propsString = Object.keys(scheduleData[i]).map(k => `${k}: ${JSON.stringify(scheduleData[i][k])} `).join(' ');
             html += `<div style="font-size: smaller">[${i}] ${propsString}</div>`;
         }
         $(setting.debug).html(html);
