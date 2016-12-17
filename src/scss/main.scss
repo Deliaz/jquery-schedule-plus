@@ -40,18 +40,22 @@ body {
   .sc_menu .sc_header .sc_time .time-data {
     position: relative;
     z-index: 30;
-  }
 
-  .sc_menu .sc_header .sc_time .time-data > span {
-    float: left;
-    width: 23px;
-    border-right: 1px solid #676767;
-    font-size: 12px;
-    color: #fff;
-  }
+    & > span {
+      float: left;
+      width: 24px;
+      border-right: 1px solid #676767;
+      font-size: 12px;
+      color: #fff;
 
-  .sc_menu .sc_header .sc_time .time-data > span:last-child {
-    border-right: none;
+      &:last-child {
+        border-right: none;
+      }
+
+      :first-child {
+        width: 23px;
+      }
+    }
   }
 
   .sc_menu .sc_header .sc_time.past-time {
@@ -262,7 +266,6 @@ body {
     background-color: rgba(20, 160, 20, 1);
   }
 }
-
 
 .event-delete-button {
   float: right;

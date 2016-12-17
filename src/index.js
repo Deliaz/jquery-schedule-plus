@@ -25,6 +25,7 @@ $.fn.timeSchedule = function (options) {
         dataWidth: 160,		// data width
         verticalScrollbar: 0,	// vertical scrollbar width
         resizeBorderWidth: 4, // Resize border width
+        seriesEvents: true, // allow few events in one row
 
         // event
         init_data: null,
@@ -186,7 +187,7 @@ $.fn.timeSchedule = function (options) {
 
         if (isAvailableToModify) {
             makeNodeDraggable($bar);
-            makeNodeResizeible($bar);
+            makeNodeResizable($bar);
         } else {
             $bar.addClass('past-event');
         }
@@ -273,7 +274,7 @@ $.fn.timeSchedule = function (options) {
         });
     }
 
-    function makeNodeResizeible($node) {
+    function makeNodeResizable($node) {
         $node.resizable({
             handles: 'e', // East (right) and West (left),
             grid: [setting.widthTimeX, setting.timeLineY],
@@ -580,6 +581,8 @@ $.fn.timeSchedule = function (options) {
         let html = Utils.formatTime(start) + "-" + Utils.formatTime(end);
         $(node).find(".time").html(html);
     };
+
+
     this.resetBarPosition = function (n) {
         // reorder elements
         let $bar_list = $element.find('.sc_main .timeline').eq(n).find(".sc_Bar");
@@ -622,10 +625,17 @@ $.fn.timeSchedule = function (options) {
                 }
                 if (!next) {
                     break;
+                } else {
+                    if(setting.seriesEvents) {
+                        $e1.css({left: e2 + setting.resizeBorderWidth});
+                    }
                 }
             }
             if (!check[h]) {
                 check[h] = [];
+            }
+            if(setting.seriesEvents) {
+                h = 0;
             }
             $e1.css({top: ((h * setting.timeLineY) + setting.timeLinePaddingTop)});
             check[h][check[h].length] = c1;
@@ -634,8 +644,7 @@ $.fn.timeSchedule = function (options) {
         this.resizeRow(n, check.length);
     };
     this.resizeRow = function (n, height) {
-        //let h = Math.max(element.getScheduleCount(n),1);
-        let h = Math.max(height, 1);
+        let h = setting.seriesEvents ? 1 : Math.max(height, 1);
         $element.find('.sc_data .timeline').eq(n).height((h * setting.timeLineY) - setting.timeLineBorder + setting.timeLinePaddingTop + setting.timeLinePaddingBottom);
         $element.find('.sc_main .timeline').eq(n).height((h * setting.timeLineY) - setting.timeLineBorder + setting.timeLinePaddingTop + setting.timeLinePaddingBottom);
 
