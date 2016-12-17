@@ -1,12 +1,15 @@
 const webpack = require('webpack');
 
+const NODE_ENV = process.env.NODE_ENV || 'dev'; // [dev | prod];
+console.log(`Enviroment: ${NODE_ENV}`);
+
 module.exports = {
     entry: "./src/",
     // watch: true, //webpack-dev-server --inline --hot
     watchOptions: {
         aggregateTimeout: 200
     },
-    devtool: 'eval',
+    devtool: NODE_ENV === 'dev' ? 'eval' : null,
     output: {
         filename: "bundle.js"
     },
@@ -36,6 +39,7 @@ module.exports = {
 
     plugins: [
         new webpack.NoErrorsPlugin(),
+        new webpack.optimize.UglifyJsPlugin()
     ],
 
     devServer: {
