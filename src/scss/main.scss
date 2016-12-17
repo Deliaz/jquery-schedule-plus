@@ -165,7 +165,7 @@ body {
 
   .timeline,
   .sc_main .tb {
-    border-bottom: solid 2px #555;
+    border-bottom: solid 2px #d0d0d0;
   }
 
   .sc_data .timeline {
@@ -277,8 +277,18 @@ body {
   }
 }
 
-.event-edit-form button[disabled] {
+.event-edit-form button[disabled],
+.event-edit-form a[disabled]{
   cursor: default;
   pointer-events: none;
   display: none;
+}
+
+.current-time-mark {
+  position: absolute;
+  top: 0;
+  z-index: 9990;
+  height: 100%;
+  border-right: 1px solid red;
+  box-shadow: 0 0 1px red;
 }

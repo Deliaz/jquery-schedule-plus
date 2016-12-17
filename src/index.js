@@ -12,8 +12,8 @@ const webUIPopoverTemplateFn = require('./templates/webui-popover.ejs');
 $.fn.timeSchedule = function (options) {
     const defaults = {
         rows: {},
-        startTime: "07:00",
-        endTime: "19:30",
+        startTime: "02:00",
+        endTime: "08:00",
         widthTimeX: 25,		// Width per cell (px)
         widthTime: 600,		// Separation time (sec)
         timeLineY: 50,		// timeline height(px)
@@ -48,6 +48,10 @@ $.fn.timeSchedule = function (options) {
     let editableNode = null;
     let currentTime = null;
     let currentTimeLeftBorder = null;
+    let currentTimeMarkLeft = null; // TODO rename
+    let fullRowsCount = null;
+    let fullCellsCount = null;
+    let minutePercentage = null;
 
     tableStartTime -= (tableStartTime % setting.widthTime);
     tableEndTime -= (tableEndTime % setting.widthTime);
@@ -133,7 +137,7 @@ $.fn.timeSchedule = function (options) {
         let etext = Utils.formatTime(data["end"]);
         let snum = data["timeline"];
         let positionFromLeft = st * setting.widthTimeX;
-        let isAvailableToModify = positionFromLeft > currentTimeLeftBorder;
+        let isAvailableToModify = positionFromLeft >= currentTimeLeftBorder;
         $bar.css({
             left: positionFromLeft,
             top: 0, //((snum * setting.timeLineY) + setting.timeLinePaddingTop), // это влияет на отступ блока внутри собственного таймлайна. тупо что он отличный был от нуля
@@ -361,7 +365,7 @@ $.fn.timeSchedule = function (options) {
         WebuiPopovers.show($bar.get(0), options);
 
         $element.find(SELECTORS.eventTitleInput).val(eventData.text);
-        if(eventData.data && eventData.data.comment) {
+        if (eventData.data && eventData.data.comment) {
             $element.find(SELECTORS.eventTitleTextarea).val(eventData.data.comment);
         } else {
             $element.find(SELECTORS.eventTitleTextarea).val('');
@@ -626,7 +630,7 @@ $.fn.timeSchedule = function (options) {
                 if (!next) {
                     break;
                 } else {
-                    if(setting.seriesEvents) {
+                    if (setting.seriesEvents) {
                         $e1.css({left: e2 + setting.resizeBorderWidth});
                     }
                 }
@@ -634,7 +638,7 @@ $.fn.timeSchedule = function (options) {
             if (!check[h]) {
                 check[h] = [];
             }
-            if(setting.seriesEvents) {
+            if (setting.seriesEvents) {
                 h = 0;
             }
             $e1.css({top: ((h * setting.timeLineY) + setting.timeLinePaddingTop)});
@@ -672,9 +676,13 @@ $.fn.timeSchedule = function (options) {
      * Start point
      */
     this.init = function () {
+        console.time('Init');
+        this.calcCurrentTime();
         this.renderData();
-        this.changeEventHandler();
         this.showCurrentTimeProgress();
+
+        this.changeEventHandler();
+        console.timeEnd('Init');
     };
 
     this.renderData = function () {
@@ -760,21 +768,37 @@ $.fn.timeSchedule = function (options) {
         });
     };
 
+    this.updateEvents = function() {
+        console.log(scheduleData, timelineData);
+    };
 
-    this.showCurrentTimeProgress = function () {
+
+    this.showCurrentTimeMark = function () {
+        let $timeTable = $element.find('.sc_main');
+        $timeTable.find('.current-time-mark').remove();
+
+        $timeTable.append('<div class="current-time-mark"></div>');
+        let $mark = $timeTable.find('.current-time-mark');
+        $mark.css({left: currentTimeMarkLeft});
+    };
+
+    this.calcCurrentTime = function () {
         let date = new Date();
-        let hours = 10 || date.getHours(); // TODO
-        let minutes = 32 || date.getMinutes(); // TODO
+        let hours = date.getHours(); // TODO
+        let minutes = date.getMinutes(); // TODO
 
         currentTime = Utils.calcStringTime(`${hours}:${minutes - minutes % 10}`);
 
         let startHour = +setting.startTime.split(':')[0];
-        let fullRowsCount = hours - startHour;
-        let fullCellsCount = fullRowsCount * 6 + (minutes - minutes % 10) / 10; // one time row contains 6 time cells
-        let minutePercentage = minutes / 60 * 100;
+        fullRowsCount = hours - startHour;
+        fullCellsCount = fullRowsCount * 6 + (minutes - minutes % 10) / 10; // one time row contains 6 time cells
+        minutePercentage = minutes / 60 * 100;
 
         currentTimeLeftBorder = fullCellsCount * 25; // 25 - cell width
+        currentTimeMarkLeft = fullRowsCount * 150 + (minutePercentage / 100) * 150; // weird math
+    };
 
+    this.showCurrentTimeProgress = function () {
         let $rows = $element.find('.sc_time');
         for (let i = 0; i < fullRowsCount; i++) {
             $rows.eq(i).addClass('past-time')
@@ -786,14 +810,24 @@ $.fn.timeSchedule = function (options) {
             .find('.minutes-percentage')
             .width(`${minutePercentage}%`);
 
-        let $timelines = $element.find('.timeline.ui-droppable');
-        $timelines.each(function () {
+        let $timeLines = $element.find('.timeline.ui-droppable');
+        $timeLines.each(function () {
             let $timeCells = $(this).find('.tl');
 
             for (let i = 0; i < fullCellsCount; i++) {
                 $timeCells.eq(i).addClass('create-disabled');
             }
         });
+
+        this.showCurrentTimeMark();
+
+        setTimeout(() => {
+            console.time('Cycle');
+            this.calcCurrentTime();
+            this.showCurrentTimeProgress();
+            this.updateEvents();
+            console.timeEnd('Cycle');
+        }, 15000);
     };
 
     // Initialization

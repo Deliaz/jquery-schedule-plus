@@ -4,10 +4,18 @@
            id="event-title"
            name="title"
            placeholder="Заголовок"
-           autocomplete="off">
+           autocomplete="off"
+            <% if(disabled) { %>
+           readonly
+            <% } %>
+    >
 
     <label for="event-comment">Комментарий</label>
-    <textarea class="event-comment-textarea js-event-comment-textarea" id="event-comment" name="comment"></textarea>
+    <textarea class="event-comment-textarea js-event-comment-textarea" id="event-comment" name="comment"
+            <% if(disabled) { %>
+              readonly
+            <% } %>
+    ></textarea>
 
     <button class="event-save-button js-event-save-button" type="submit"
             <% if(disabled) { %>
@@ -16,7 +24,15 @@
     >
         Сохранить
     </button>
-    <a href="#" class="event-cancel-link js-event-cancel-link">Отмена</a>
+
+    <a href="#" class="event-cancel-link js-event-cancel-link"
+            <% if(disabled) { %>
+       disabled
+            <% } %>
+    >
+        Отмена
+    </a>
+
     <button class="event-delete-button js-event-delete-button" type="button"
             <% if(disabled) { %>
             disabled

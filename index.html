@@ -18,8 +18,6 @@
 
         jQuery(document).ready(function () {
             var $sc = jQuery("#schedule").timeSchedule({
-                startTime: "9:00", // schedule start time(HH:ii)
-                endTime: "18:00",   // schedule end time(HH:ii)
                 widthTime: 60 * 10,  // cell timestamp example 10 minutes
                 timeLineY: 60,       // height(px)
                 verticalScrollbar: 20,   // scrollbar (px)
@@ -30,8 +28,8 @@
                         title: 'Пост 1',
                         schedule: [
                             {
-                                start: '10:50',
-                                end: '12:00',
+                                start: '02:10',
+                                end: '02:50',
                                 text: 'День',
                                 data: {}
                             },
@@ -47,8 +45,8 @@
                         title: 'Пост 2',
                         schedule: [
                             {
-                                start: '16:00',
-                                end: '17:00',
+                                start: '03:10',
+                                end: '04:30',
                                 text: 'Вечер',
                                 data: {
                                     comment: 'Test'
@@ -77,16 +75,9 @@
 
 
             $sc.addNewEvent({
-                "start": '13:00',
-                "end": '15:50',
+                "start": '05:00',
+                "end": '06:50',
                 "text": "Утро",
-                "data": {}
-            });
-
-            $sc.addNewEvent({
-                "start": '9:20',
-                "end": '10:10',
-                "text": "Завтрак",
                 "data": {}
             });
 
