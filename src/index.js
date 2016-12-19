@@ -12,18 +12,18 @@ const webUIPopoverTemplateFn = require('./templates/webui-popover.ejs');
 $.fn.timeSchedule = function (options) {
     const defaults = {
         rows: {},
-        startTime: "00:00",
-        endTime: "08:00",
+        startTime: "10:00",
+        endTime: "18:00",
         widthTimeX: 25,		// Width per cell (px)
         widthTime: 600,		// Separation time (sec)
-        timeLineY: 50,		// timeline height(px)
-        timeLineBorder: 1,	// timeline height border
+        timeLineY: 60,		// timeline height(px)
+        timeLineBorder: 4,	// timeline height border
         timeBorder: 1,		// border width
         timeLinePaddingTop: 0,
         timeLinePaddingBottom: 3,
         headTimeBorder: 0,	// time border width
         dataWidth: 160,		// data width
-        verticalScrollbar: 0,	// vertical scrollbar width
+        verticalScrollbar: 20,	// vertical scrollbar width
         resizeBorderWidth: 4, // Resize border width
         seriesEvents: true, // allow few events in one row
 
@@ -840,8 +840,14 @@ $.fn.timeSchedule = function (options) {
 
     this.calcCurrentTime = function () {
         let date = new Date();
-        let hours = date.getHours(); // TODO
-        let minutes = date.getMinutes(); // TODO
+        let hours = date.getHours();
+        let minutes = date.getMinutes();
+
+        if(typeof setting.debugTime === 'string') {
+            let split = setting.debugTime.split(':');
+            hours = split[0];
+            minutes = split[1];
+        }
 
         currentTime = Utils.calcStringTime(`${hours}:${minutes - minutes % 10}`);
 

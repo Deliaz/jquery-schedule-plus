@@ -18,38 +18,35 @@
 
         jQuery(document).ready(function () {
             var $sc = jQuery("#schedule").timeSchedule({
-                widthTime: 60 * 10,  // cell timestamp example 10 minutes
-                timeLineY: 60,       // height(px)
-                verticalScrollbar: 20,   // scrollbar (px)
-                timeLineBorder: 4,   // border(top and bottom)
-                debug: "#debug",     // debug string output elements
                 rows: [
                     {
                         title: 'Пост 1',
                         schedule: [
                             {
-                                start: '02:10',
-                                end: '02:50',
-                                text: 'День',
+                                start: '10:10',
+                                end: '11:40',
+                                text: 'Утренняя задача',
                                 data: {}
                             },
-//                            {
-//                                start: '11:00',
-//                                end: '14:00',
-//                                text: 'Text Area',
-//                                data: {}
-//                            }
+                            {
+                                start: '13:30',
+                                end: '14:10',
+                                text: 'Отчет',
+                                data: {
+                                    comment: "Составить отчет"
+                                }
+                            }
                         ]
                     },
                     {
                         title: 'Пост 2',
                         schedule: [
                             {
-                                start: '03:10',
-                                end: '04:30',
-                                text: 'Вечер',
+                                start: '11:30',
+                                end: '13:30',
+                                text: 'Долгий ремонт',
                                 data: {
-                                    comment: 'Test'
+                                    comment: 'Необходимо детальное изучение'
                                 }
                             }
                         ]
@@ -59,29 +56,28 @@
                     }
                 ],
                 change: function (node, data) {
-//                    console.log('change_event');
                 },
                 init_data: function (node, data) {
                 },
                 click: function (node, data) {
-//                    console.log('click_event', node, data);
                 },
                 append: function (node, data) {
                 },
                 time_click: function (time, data) {
-//                    console.log('time_click', time, data);
-                }
+                },
+
+                debugTime: "10:30" //Устанавливает время для отладки
             });
 
 
+            // Add event dynamically
             $sc.addNewEvent({
-                "start": '05:00',
-                "end": '06:50',
-                "text": "Утро",
+                "start": '15:00',
+                "end": '16:50',
+                "text": "Послеобеденный сон",
+                "timeline": 2,
                 "data": {}
             });
-
-            window.$sc = $sc;
         });
     </script>
 </head>
