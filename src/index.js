@@ -593,6 +593,7 @@ $.fn.timeSchedule = function (options) {
 
 
     this.resetBarPosition = function (n) {
+        let self = this;
         // reorder elements
         let $bar_list = $element.find('.sc_main .timeline').eq(n).find(".sc_Bar");
         let codes = [];
@@ -637,6 +638,8 @@ $.fn.timeSchedule = function (options) {
                 } else {
                     if (setting.seriesEvents) {
                         $e1.css({left: e2 + setting.resizeBorderWidth});
+                        let time = self.getBarTime($e1);
+                        self.rewriteBarText($e1, {start: time.startTime, end: time.endTime});
                     }
                 }
             }
@@ -784,21 +787,21 @@ $.fn.timeSchedule = function (options) {
             let currentTimelineIndex = currentTimelineEl.index();
 
             let originalLeft = editableNode.data('originalLeft');
-            if(originalLeft) {
+            if(typeof originalLeft !== 'undefined') {
                 editableNode.css({
                     left: originalLeft
                 });
             }
 
             let originalWidth = editableNode.data('originalWidth');
-            if(originalWidth) {
+            if(typeof originalWidth !== 'undefined') {
                 editableNode.css({
                     width: originalWidth
                 });
             }
 
             let originalTimeline = editableNode.data('originalTimeline');
-            if(originalTimeline && originalTimeline !== currentTimelineIndex) {
+            if(typeof originalTimeline !== 'undefined' && originalTimeline !== currentTimelineIndex) {
                 let originalTimelineEl = $element.find('.timeline.ui-droppable').eq(originalTimeline);
                 originalTimelineEl.append(editableNode);
             }

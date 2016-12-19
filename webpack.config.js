@@ -1,6 +1,6 @@
 const webpack = require('webpack');
 
-const NODE_ENV = process.env.NODE_ENV || 'dev'; // [dev | prod];
+const NODE_ENV = (process.env.NODE_ENV || 'dev').trim(); // [dev | prod];
 console.log(`Enviroment: ${NODE_ENV}`);
 
 module.exports = {
