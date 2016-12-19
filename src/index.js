@@ -12,7 +12,7 @@ const webUIPopoverTemplateFn = require('./templates/webui-popover.ejs');
 $.fn.timeSchedule = function (options) {
     const defaults = {
         rows: {},
-        startTime: "02:00",
+        startTime: "00:00",
         endTime: "08:00",
         widthTimeX: 25,		// Width per cell (px)
         widthTime: 600,		// Separation time (sec)
@@ -113,7 +113,7 @@ $.fn.timeSchedule = function (options) {
         let x = $bar.position().left;
         let w = $bar.width();
         let startTime = tableStartTime + (Math.floor(x / setting.widthTimeX) * setting.widthTime);
-        let endTime = tableStartTime + (Math.floor((x + w) / setting.widthTimeX) * setting.widthTime);
+        let endTime = tableStartTime + (Math.floor((x + w) / setting.widthTimeX) * setting.widthTime) + setting.widthTime;
 
         return {startTime, endTime};
     };
@@ -121,6 +121,150 @@ $.fn.timeSchedule = function (options) {
     this.isEventCanBeMoved = function ($bar) {
         let startTime = this.getBarTime($bar).startTime;
         return startTime > currentTime;
+    };
+
+    this.makeNodeDraggable = function ($node) {
+        $node.draggable({
+            grid: [setting.widthTimeX, 1],
+            containment: ".sc_main",
+            helper: 'original',
+            start: function (event, ui) {
+                let node = {};
+                node["node"] = this;
+                node["offsetTop"] = ui.position.top;
+                node["offsetLeft"] = ui.position.left;
+                node["currentTop"] = ui.position.top;
+                node["currentLeft"] = ui.position.left;
+                node["timeline"] = element.getTimeLineNumber(ui.offset.top);
+                node["nowTimeline"] = node["timeline"];
+
+                currentNode = node;
+            },
+            drag: function (event, ui) {
+                $(this).data("dragCheck", true);
+                if (!currentNode) {
+                    return false;
+                }
+                WebuiPopovers.hideAll();
+                let $moveNode = $(this);
+
+                let sc_key = $moveNode.data("sc_key");
+                let timelineNum = element.getTimeLineNumber(ui.offset.top);
+
+
+                // Uncomment if you want to get hard fixed position
+                // ui.position.top = Math.floor(ui.position.top / setting.timeLineY) * setting.timeLineY;
+
+                ui.position.left = Math.floor(ui.position.left / setting.widthTimeX) * setting.widthTimeX;
+
+                // min position by current time
+                if (ui.position.left <= currentTimeLeftBorder) {
+                    ui.position.left = currentTimeLeftBorder;
+                }
+
+                if (currentNode["nowTimeline"] !== timelineNum) {
+                    currentNode["nowTimeline"] = timelineNum;
+                }
+                currentNode["currentTop"] = ui.position.top;
+                currentNode["currentLeft"] = ui.position.left;
+                // Text change
+                element.rewriteBarText($moveNode, scheduleData[sc_key]);
+
+                return true;
+            },
+            // Processing after element movement has ended
+            stop: function (event, ui) {
+                let $node = $(this);
+                $node.data("dragCheck", false);
+
+                $node.data({
+                    originalLeft: ui.originalPosition.left,
+                    originalTimeline: currentNode.timeline
+                });
+
+                currentNode = null;
+
+                let sc_key = $node.data("sc_key");
+                let x = $node.position().left;
+
+                let start = tableStartTime + (Math.floor(x / setting.widthTimeX) * setting.widthTime);
+                let end = start + ((scheduleData[sc_key]["end"] - scheduleData[sc_key]["start"]));
+
+                showEventSettings($node, scheduleData[sc_key]);
+
+                scheduleData[sc_key]["start"] = start;
+                scheduleData[sc_key]["end"] = end;
+                // Call back if callback is set
+                if (setting.change) {
+                    setting.change($node, scheduleData[sc_key]);
+                }
+            }
+        });
+    };
+
+    this.makeNodeResizable = function ($node) {
+        let self = this;
+        $node.resizable({
+            handles: 'e', // East (right) and West (left),
+            grid: [setting.widthTimeX, setting.timeLineY],
+            minWidth: setting.widthTimeX,
+            start: function (event, ui) {
+                let $node = $(this);
+                if (ui.position.left <= currentTimeLeftBorder && event.toElement.matches('.ui-resizable-w')) {
+                    $node.trigger('mouseup');
+                    event.preventDefault();
+                    $node.data("resizeCheck", false);
+                    $node.removeClass('ui-resizable-resizing');
+                    return false;
+                }
+
+                $node.data("resizeCheck", true);
+            },
+            resize: function (event, ui) {
+                // let $node = $(this);
+                // if (ui.position.left <= currentTimeLeftBorder
+                //     && ($(event.toElement).position().left <= ui.position.left && !$(event.toElement).is('span.text')))  {
+                //
+                //     ui.position.left = currentTimeLeftBorder;
+                //     ui.size.width = lastSuccessfullWidth;
+                //     $node.data("resizeCheck", false);
+                //     $node.removeClass('ui-resizable-resizing');
+                //     $node.trigger('mouseup');
+                //     return false;
+                // }
+                //
+                // lastSuccessfulWidth = ui.size.width;
+            },
+            // Processing after element movement has ended
+            stop: function (event, ui) {
+                let $node = $(this);
+
+                let sc_key = $node.data("sc_key");
+                let time = self.getBarTime($node);
+                let timelineNum = scheduleData[sc_key]["timeline"];
+
+                scheduleData[sc_key]["start"] = time.startTime;
+                scheduleData[sc_key]["end"] = time.endTime;
+
+                // Height adjustment
+                element.resetBarPosition(timelineNum);
+                // Text change
+                element.rewriteBarText($node, scheduleData[sc_key]);
+
+                $node.data("resizeCheck", false);
+
+                $node.data({
+                    originalWidth: ui.originalSize.width
+                });
+
+                showEventSettings($node, scheduleData[sc_key]);
+
+                // Call back if callback is set
+                if (setting.change) {
+                    setting.change($node, scheduleData[sc_key]);
+                }
+            }
+        });
     };
 
     /**
@@ -190,153 +334,14 @@ $.fn.timeSchedule = function (options) {
         }
 
         if (isAvailableToModify) {
-            makeNodeDraggable($bar);
-            makeNodeResizable($bar);
+            this.makeNodeDraggable($bar);
+            this.makeNodeResizable($bar);
         } else {
             $bar.addClass('past-event');
         }
 
         return key;
     };
-
-
-    function makeNodeDraggable($node) {
-        $node.draggable({
-            grid: [setting.widthTimeX, 1],
-            containment: ".sc_main",
-            helper: 'original',
-            start: function (event, ui) {
-                let node = {};
-                node["node"] = this;
-                node["offsetTop"] = ui.position.top;
-                node["offsetLeft"] = ui.position.left;
-                node["currentTop"] = ui.position.top;
-                node["currentLeft"] = ui.position.left;
-                node["timeline"] = element.getTimeLineNumber(ui.position.top);
-                node["nowTimeline"] = node["timeline"];
-                currentNode = node;
-            },
-            drag: function (event, ui) {
-                $(this).data("dragCheck", true);
-                if (!currentNode) {
-                    return false;
-                }
-                WebuiPopovers.hideAll();
-                let $moveNode = $(this);
-
-                let sc_key = $moveNode.data("sc_key");
-                let originalTop = ui.originalPosition.top;
-                let originalLeft = ui.originalPosition.left;
-                let positionTop = ui.position.top;
-                let positionLeft = ui.position.left;
-                let timelineNum = element.getTimeLineNumber(ui.position.top);
-
-
-                // Uncomment if you want to get hard fixed position
-                //ui.position.top = Math.floor(ui.position.top / setting.timeLineY) * setting.timeLineY;
-
-                ui.position.left = Math.floor(ui.position.left / setting.widthTimeX) * setting.widthTimeX;
-
-                // min position by current time
-                if (ui.position.left <= currentTimeLeftBorder) {
-                    ui.position.left = currentTimeLeftBorder;
-                }
-
-
-                if (currentNode["nowTimeline"] !== timelineNum) {
-                    currentNode["nowTimeline"] = timelineNum;
-                }
-                currentNode["currentTop"] = ui.position.top;
-                currentNode["currentLeft"] = ui.position.left;
-                // Text change
-                element.rewriteBarText($moveNode, scheduleData[sc_key]);
-
-                return true;
-            },
-            // Processing after element movement has ended
-            stop: function (event, ui) {
-                $(this).data("dragCheck", false);
-
-                currentNode = null;
-
-                let node = $(this);
-                let sc_key = node.data("sc_key");
-                let x = node.position().left;
-                let w = node.width();
-
-                let start = tableStartTime + (Math.floor(x / setting.widthTimeX) * setting.widthTime);
-                // let end = tableStartTime + (Math.floor((x + w) / setting.widthTimeX) * setting.widthTime);
-                let end = start + ((scheduleData[sc_key]["end"] - scheduleData[sc_key]["start"]));
-
-                scheduleData[sc_key]["start"] = start;
-                scheduleData[sc_key]["end"] = end;
-                // Call back if callback is set
-                if (setting.change) {
-                    setting.change(node, scheduleData[sc_key]);
-                }
-            }
-        });
-    }
-
-    function makeNodeResizable($node) {
-        $node.resizable({
-            handles: 'e', // East (right) and West (left),
-            grid: [setting.widthTimeX, setting.timeLineY],
-            minWidth: setting.widthTimeX,
-            start: function (event, ui) {
-                let $node = $(this);
-                if (ui.position.left <= currentTimeLeftBorder && event.toElement.matches('.ui-resizable-w')) {
-                    $node.trigger('mouseup');
-                    event.preventDefault();
-                    $node.data("resizeCheck", false);
-                    $node.removeClass('ui-resizable-resizing');
-                    return false;
-                }
-
-                $node.data("resizeCheck", true);
-            },
-            resize: function (event, ui) {
-                // let $node = $(this);
-                // if (ui.position.left <= currentTimeLeftBorder
-                //     && ($(event.toElement).position().left <= ui.position.left && !$(event.toElement).is('span.text')))  {
-                //
-                //     ui.position.left = currentTimeLeftBorder;
-                //     ui.size.width = lastSuccessfullWidth;
-                //     $node.data("resizeCheck", false);
-                //     $node.removeClass('ui-resizable-resizing');
-                //     $node.trigger('mouseup');
-                //     return false;
-                // }
-                //
-                // lastSuccessfullWidth = ui.size.width;
-            },
-            // Processing after element movement has ended
-            stop: function (event, ui) {
-                let node = $(this);
-
-                let sc_key = node.data("sc_key");
-                let x = node.position().left;
-                let w = node.width();
-                let start = tableStartTime + (Math.floor(x / setting.widthTimeX) * setting.widthTime);
-                let end = tableStartTime + (Math.floor((x + w) / setting.widthTimeX) * setting.widthTime);
-                let timelineNum = scheduleData[sc_key]["timeline"];
-
-                scheduleData[sc_key]["start"] = start;
-                scheduleData[sc_key]["end"] = end;
-
-                // Height adjustment
-                element.resetBarPosition(timelineNum);
-                // Text change
-                element.rewriteBarText(node, scheduleData[sc_key]);
-
-                node.data("resizeCheck", false);
-                // Call back if callback is set
-                if (setting.change) {
-                    setting.change(node, scheduleData[sc_key]);
-                }
-            }
-        });
-    }
 
     // Acquire schedule number
     this.getScheduleCount = function (n) {
@@ -723,6 +728,7 @@ $.fn.timeSchedule = function (options) {
     };
 
     this.changeEventHandler = () => {
+
         $element.on('submit', SELECTORS.eventChangeForm, function (e) {
             e.preventDefault();
 
@@ -747,6 +753,9 @@ $.fn.timeSchedule = function (options) {
                 // Hide event settings
                 editableNode.webuiPopover('hide');
 
+                editableNode.data({originalLeft: null});
+                editableNode.data({originalTimeline: null});
+
                 editableNode = null;
             } else {
                 throw new Error('Editable node not specified');
@@ -766,10 +775,55 @@ $.fn.timeSchedule = function (options) {
 
             editableNode = null;
         });
+
+        $element.on('click', SELECTORS.eventCancelBtn, (e) => {
+            e.preventDefault();
+
+            let sc_key = editableNode.data("sc_key");
+            let currentTimelineEl = editableNode.closest('.timeline.ui-droppable');
+            let currentTimelineIndex = currentTimelineEl.index();
+
+            let originalLeft = editableNode.data('originalLeft');
+            if(originalLeft) {
+                editableNode.css({
+                    left: originalLeft
+                });
+            }
+
+            let originalWidth = editableNode.data('originalWidth');
+            if(originalWidth) {
+                editableNode.css({
+                    width: originalWidth
+                });
+            }
+
+            let originalTimeline = editableNode.data('originalTimeline');
+            if(originalTimeline && originalTimeline !== currentTimelineIndex) {
+                let originalTimelineEl = $element.find('.timeline.ui-droppable').eq(originalTimeline);
+                originalTimelineEl.append(editableNode);
+            }
+
+            editableNode.data({originalLeft: null});
+            editableNode.data({originalTimeline: null});
+            editableNode.data({originalWidth: null});
+
+
+            let barTime = this.getBarTime(editableNode);
+
+            scheduleData[sc_key]["start"] = barTime.startTime;
+            scheduleData[sc_key]["end"] = barTime.endTime;
+
+            element.rewriteBarText(editableNode, scheduleData[sc_key]);
+
+            editableNode.webuiPopover('hide');
+            editableNode = null;
+
+            return false;
+        });
     };
 
     this.updateEvents = function() {
-        console.log(scheduleData, timelineData);
+        // console.log(scheduleData, timelineData);
     };
 
 
@@ -777,9 +831,11 @@ $.fn.timeSchedule = function (options) {
         let $timeTable = $element.find('.sc_main');
         $timeTable.find('.current-time-mark').remove();
 
-        $timeTable.append('<div class="current-time-mark"></div>');
-        let $mark = $timeTable.find('.current-time-mark');
-        $mark.css({left: currentTimeMarkLeft});
+        if(currentTimeMarkLeft !== null) {
+            $timeTable.append('<div class="current-time-mark"></div>');
+            let $mark = $timeTable.find('.current-time-mark');
+            $mark.css({left: currentTimeMarkLeft});
+        }
     };
 
     this.calcCurrentTime = function () {
@@ -790,12 +846,22 @@ $.fn.timeSchedule = function (options) {
         currentTime = Utils.calcStringTime(`${hours}:${minutes - minutes % 10}`);
 
         let startHour = +setting.startTime.split(':')[0];
+        
         fullRowsCount = hours - startHour;
-        fullCellsCount = fullRowsCount * 6 + (minutes - minutes % 10) / 10; // one time row contains 6 time cells
-        minutePercentage = minutes / 60 * 100;
+        if(fullRowsCount >= 0) {
+            fullCellsCount = fullRowsCount * 6 + (minutes - minutes % 10) / 10; // one time row contains 6 time cells
+            minutePercentage = minutes / 60 * 100;
 
-        currentTimeLeftBorder = fullCellsCount * 25; // 25 - cell width
-        currentTimeMarkLeft = fullRowsCount * 150 + (minutePercentage / 100) * 150; // weird math
+            currentTimeLeftBorder = fullCellsCount * 25; // 25 - cell width
+            currentTimeMarkLeft = fullRowsCount * 150 + (minutePercentage / 100) * 150; // weird math
+        } else {
+            fullCellsCount = 0;
+            minutePercentage = 0;
+            currentTimeLeftBorder = 0;
+            currentTimeMarkLeft = null;
+
+            //TODO mark all rest timeline like disabled
+        }
     };
 
     this.showCurrentTimeProgress = function () {
