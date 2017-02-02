@@ -1,6 +1,5 @@
-jq.Schedule
+jQuery Schedule Plus
 ===============
+jQuery schedule plugin
 
-jquery and html schedule calendar
-
-javascript base time schedule plugin.
+Forked and modified from https://github.com/ateliee/jquery.schedule
