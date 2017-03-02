@@ -14,10 +14,10 @@ module.exports = {
         filename: "bundle.js"
     },
     module: {
-        loaders: [
+        rules: [
             {
                 test: /\.js$/,
-                loader: "babel?presets[]=es2015"
+                loader: "babel-loader?presets[]=es2015"
             },
             {
                 test: /\.ejs$/,
@@ -30,15 +30,15 @@ module.exports = {
             {
                 test: /\.(jpe?g|png|gif|svg)$/i,
                 loaders: [
-                    'file?hash=sha512&digest=hex&name=[hash].[ext]',
-                    'image-webpack?bypassOnDebug&optimizationLevel=7&interlaced=false'
+                    'file-loader?hash=sha512&digest=hex&name=[hash].[ext]',
+                    'image-webpack-loader?bypassOnDebug&optimizationLevel=7&interlaced=false'
                 ]
             }
         ]
     },
 
     plugins: [
-        new webpack.NoErrorsPlugin(),
+        new webpack.NoEmitOnErrorsPlugin(),
         new webpack.optimize.UglifyJsPlugin()
     ],
 
