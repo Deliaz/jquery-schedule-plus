@@ -34,7 +34,7 @@ body {
     text-align: center;
     position: relative;
     border-left: solid 1px #bbb;
-    background: #5fb338;
+    background: #5ba0e4;
   }
 
   .sc_menu .sc_header .sc_time .time-data {
@@ -123,44 +123,52 @@ body {
     user-select: none;
   }
 
-  .sc_Bar {
+  .sc_bar {
     position: absolute;
     color: #FFF;
 
-    background: #4f93d6;
+    background: #67c559;
     cursor: pointer;
     z-index: 10;
     box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.3);
-    border-right: 4px solid #395ac1;
+    border-right: 4px solid #419d2c;
     /*border-left: 4px solid #555;*/
+
+    &.past-event {
+      background: #7b858c;
+      border-right-color: #7b858c;
+    }
+
+    &.in-edit {
+      background: #d4d251;
+      border-right: 4px solid #c5c157;
+    }
+
+    .text {
+      display: block;
+      padding: 5px 10px 0;
+      font-weight: bold;
+      height: 18px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-shadow: 1px 1px 1px #444;
+    }
+
+    .head {
+      display: block;
+      padding: 6px 8px 0;
+      font-size: 12px;
+      height: 16px;
+      overflow: hidden;
+      text-shadow: 1px 0 1px #444;
+    }
   }
 
-  .sc_Bar.past-event {
-    background: #7b858c;
-    border-right-color: #7b858c;
-  }
 
   .ui-draggable-dragging,
   .ui-resizeable {
     z-index: 20;
-  }
-
-  .sc_Bar .head {
-    display: block;
-    padding: 6px 8px 0;
-    font-size: 12px;
-    height: 16px;
-    overflow: hidden;
-  }
-
-  .sc_Bar .text {
-    display: block;
-    padding: 5px 15px 0;
-    font-weight: bold;
-    height: 18px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .timeline,
@@ -200,12 +208,12 @@ body {
   }
 
   .sc_main_scroll .sc_main .tl.marked-for-new-event {
-    background-color: #9bc0ff !important;
-    border-right: solid 1px #9bc0ff;
+    background-color: #f7ff84 !important;
+    border-right: solid 1px #f7ff84;
   }
 
   .sc_main_scroll .sc_main .tl:hover:not(.create-disabled) {
-    background: #F0F0FF;
+    background: #feffd9;
   }
 
   .sc_main_scroll .sc_main .tl.create-disabled {

@@ -1,11 +1,13 @@
 import * as Utils from './utils';
+import WebUIPopoverExec from 'script-loader!./jquery.webui-popover.min.js';
 import webuiPopoverConfGetter from './webui-popover-conf';
 import SELECTORS from './selectors';
 
 const tableLayoutHTML = require('./templates/table-layout.ejs')();
 const tableHeaderHTML = require('./templates/table-header.ejs')();
 
-const styles = require('./scss/main.scss');
+require('./scss/main.scss');
+
 
 const webUIPopoverTemplateFn = require('./templates/webui-popover.ejs');
 
@@ -16,7 +18,7 @@ $.fn.timeSchedule = function (options) {
         endTime: "18:00",
         widthTimeX: 25,		// Width per cell (px)
         widthTime: 600,		// Separation time (sec)
-        timeLineY: 60,		// timeline height(px)
+        timeLineY: 55,		// timeline height(px)
         timeLineBorder: 4,	// timeline height border
         timeBorder: 1,		// border width
         timeLinePaddingTop: 0,
@@ -276,7 +278,7 @@ $.fn.timeSchedule = function (options) {
     this.addScheduleData = function (data, isManuallyNew = false) {
         let st = Math.ceil((data["start"] - tableStartTime) / setting.widthTime);
         let et = Math.floor((data["end"] - tableStartTime) / setting.widthTime);
-        let $bar = $('<div class="sc_Bar"><span class="head"><span class="time"></span></span><span class="text"></span></div>');
+        let $bar = $('<div class="sc_bar"><span class="head"><span class="time"></span></span><span class="text"></span></div>');
         let stext = Utils.formatTime(data["start"]);
         let etext = Utils.formatTime(data["end"]);
         let snum = data["timeline"];
@@ -288,7 +290,7 @@ $.fn.timeSchedule = function (options) {
             width: ((et - st) * setting.widthTimeX - setting.resizeBorderWidth), //
             height: (setting.timeLineY)
         });
-        $bar.find(".time").text(stext + "-" + etext);
+        $bar.find(".time").text(stext + " - " + etext);
         if (data["text"]) {
             $bar.find(".text").text(data["text"]);
         }
@@ -375,6 +377,9 @@ $.fn.timeSchedule = function (options) {
         } else {
             $element.find(SELECTORS.eventTitleTextarea).val('');
         }
+
+        // TODO if editing is enabled
+        $bar.addClass('in-edit');
     }
 
     // add
@@ -527,7 +532,7 @@ $.fn.timeSchedule = function (options) {
         // Adjust height
         element.resetBarPosition(id);
         $element.find('.sc_main .timeline').eq(id).droppable({
-            accept: ".sc_Bar",
+            accept: ".sc_bar",
             drop: function (ev, ui) {
                 let node = ui.draggable;
                 let sc_key = node.data("sc_key");
@@ -544,7 +549,7 @@ $.fn.timeSchedule = function (options) {
 
         // Call back if callback is set
         if (setting.append) {
-            $element.find('.sc_main .timeline').eq(id).find(".sc_Bar").each(function () {
+            $element.find('.sc_main .timeline').eq(id).find(".sc_bar").each(function () {
                 let node = $(this);
                 let sc_key = node.data("sc_key");
                 setting.append(node, scheduleData[sc_key]);
@@ -587,7 +592,7 @@ $.fn.timeSchedule = function (options) {
         let start = tableStartTime + (Math.floor(x / setting.widthTimeX) * setting.widthTime);
         //let end = tableStartTime + (Math.floor((x + w) / setting.widthTimeX) * setting.widthTime);
         let end = start + (data["end"] - data["start"]);
-        let html = Utils.formatTime(start) + "-" + Utils.formatTime(end);
+        let html = Utils.formatTime(start) + " - " + Utils.formatTime(end);
         $(node).find(".time").html(html);
     };
 
@@ -595,7 +600,7 @@ $.fn.timeSchedule = function (options) {
     this.resetBarPosition = function (n) {
         let self = this;
         // reorder elements
-        let $bar_list = $element.find('.sc_main .timeline').eq(n).find(".sc_Bar");
+        let $bar_list = $element.find('.sc_main .timeline').eq(n).find(".sc_bar");
         let codes = [];
         for (let i = 0; i < $bar_list.length; i++) {
             codes[i] = {code: i, x: $($bar_list[i]).position().left};
@@ -765,6 +770,10 @@ $.fn.timeSchedule = function (options) {
             }
         });
 
+
+        /*
+        Delete button click
+         */
         $element.on('click', SELECTORS.eventDeleteBtn, () => {
             let sc_key = editableNode.data("sc_key");
             delete(scheduleData[sc_key]); // delete will save keys
@@ -779,6 +788,9 @@ $.fn.timeSchedule = function (options) {
             editableNode = null;
         });
 
+        /*
+        Cancel button click
+         */
         $element.on('click', SELECTORS.eventCancelBtn, (e) => {
             e.preventDefault();
 
@@ -806,9 +818,9 @@ $.fn.timeSchedule = function (options) {
                 originalTimelineEl.append(editableNode);
             }
 
-            editableNode.data({originalLeft: null});
-            editableNode.data({originalTimeline: null});
-            editableNode.data({originalWidth: null});
+            editableNode.removeData('originalLeft');
+            editableNode.removeData('originalTimeline');
+            editableNode.removeData('originalWidth');
 
 
             let barTime = this.getBarTime(editableNode);
@@ -819,6 +831,8 @@ $.fn.timeSchedule = function (options) {
             element.rewriteBarText(editableNode, scheduleData[sc_key]);
 
             editableNode.webuiPopover('hide');
+            editableNode.removeClass('in-edit');
+
             editableNode = null;
 
             return false;

@@ -17,9 +17,10 @@
     "jquery-ui": "^1.12.1",
     "node-sass": "^3.13.0",
     "sass-loader": "^4.0.2",
+    "script-loader": "^0.7.0",
     "style-loader": "^0.13.1",
-    "webpack": "^1.13.3",
-    "webpack-dev-server": "^1.16.2",
+    "webpack": "^2.2.1",
+    "webpack-dev-server": "^2.4.1",
     "webpack-uglify-js-plugin": "^1.1.9",
     "webui-popover": "^1.2.17"
   }

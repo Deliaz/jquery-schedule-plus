@@ -4,7 +4,7 @@ export default function getConfig($container) {
         placement: 'bottom',
         trigger: 'manual',
         // animation: 'fade',
-        closeable: true,
+        closeable: false,
         multi: false,
         dismissible: true,
         width: 300,
