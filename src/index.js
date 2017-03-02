@@ -763,8 +763,8 @@ $.fn.timeSchedule = function (options) {
                 // Hide event settings
                 editableNode.webuiPopover('hide');
 
-                editableNode.data({originalLeft: null});
-                editableNode.data({originalTimeline: null});
+                editableNode.removeData('originalLeft');
+                editableNode.removeData('originalTimeline');
 
                 editableNode = null;
             } else {
