@@ -132,11 +132,11 @@ body {
     z-index: 10;
     box-shadow: -1px -1px 0 rgba(0, 0, 0, 0.3);
     border-right: 4px solid #419d2c;
-    transition: box-shadow 0.15s ease;
+    transition: box-shadow 0.2s ease, background-color 0.3s ease;
 
     &.in-edit {
-      background: #d4cd60;
-      border-right-color: #a89b36;
+      background: #cddc20;
+      border-right-color: #a6a926;
       box-shadow: 0 0 7px rgba(0, 0, 0, 0.5);
     }
 
