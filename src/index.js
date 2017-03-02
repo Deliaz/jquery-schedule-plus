@@ -365,7 +365,9 @@ $.fn.timeSchedule = function (options) {
      */
     function showEventSettings($bar, eventData = {}, isDisabled = false) {
         editableNode = $bar;
-        let defaultOpts = webuiPopoverConfGetter($element.get(0));
+        let defaultOpts = webuiPopoverConfGetter($element.get(0), hideFn => {
+            $bar.removeClass('in-edit')
+        });
         let options = $.extend({}, defaultOpts, {
             content: webUIPopoverTemplateFn({disabled: isDisabled})
         });
@@ -831,7 +833,6 @@ $.fn.timeSchedule = function (options) {
             element.rewriteBarText(editableNode, scheduleData[sc_key]);
 
             editableNode.webuiPopover('hide');
-            editableNode.removeClass('in-edit');
 
             editableNode = null;
 

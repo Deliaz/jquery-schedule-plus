@@ -1,10 +1,10 @@
-export default function getConfig($container) {
+export default function getConfig($container, hideFn) {
     return {
         container: $container || document.body,
         placement: 'bottom',
         trigger: 'manual',
         // animation: 'fade',
-        closeable: false,
+        closeable: true,
         multi: false,
         dismissible: true,
         width: 300,
@@ -14,7 +14,9 @@ export default function getConfig($container) {
         },
 
         onHide: $element => {
-
+            if(typeof hideFn === 'function') {
+                hideFn();
+            }
         }
     }
 
