@@ -49,6 +49,37 @@
                         title: 'Пост 3'
                     }
                 ],
+                fields: [
+                    {
+                        title: 'Марка АМ',
+                        name: 'manufacturer'
+                    },
+                    {
+                        title: 'Модель АМ',
+                        name: 'model'
+                    },
+                    {
+                        title: 'Месяц/год выпуска',
+                        name: 'date',
+                        placeholder: 'ММ.ГГГГ'
+                    },
+                    {
+                        title: 'Мощность двигателя, л.с.',
+                        name: 'power',
+                    },
+                    {
+                        title: 'Гос. номер',
+                        name: 'number',
+                    },
+                    {
+                        title: 'Имя клиента',
+                        name: 'client_name',
+                    },
+                    {
+                        title: 'Телефон клиента',
+                        name: 'client_phone',
+                    },
+                ],
                 change: function (node, data) {
                 },
                 init_data: function (node, data) {
@@ -60,7 +91,8 @@
                 time_click: function (time, data) {
                 },
 
-                debugTime: "10:20" //Устанавливает время для отладки
+                //debugTime: "10:20", //Устанавливает время для отладки
+                debug: '#debug'
             });
 
 

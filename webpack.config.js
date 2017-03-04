@@ -39,7 +39,10 @@ module.exports = {
 
     plugins: [
         new webpack.NoEmitOnErrorsPlugin(),
-        new webpack.optimize.UglifyJsPlugin()
+        new webpack.optimize.UglifyJsPlugin(),
+        new webpack.ProvidePlugin({
+            _: 'lodash'
+        })
     ],
 
     devServer: {

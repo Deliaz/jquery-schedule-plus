@@ -42,10 +42,11 @@ $.fn.timeSchedule = function (options) {
     this.setting = setting;
     let scheduleData = [];
     let timelineData = [];
-    let $element = $(this);
-    let element = (this);
+    const $element = $(this);
+    const element = (this);
     let tableStartTime = Utils.calcStringTime(setting.startTime);
     let tableEndTime = Utils.calcStringTime(setting.endTime);
+    const eventFields = setting.fields || [];
     let currentNode = null;
     let editableNode = null;
     let currentTime = null;
@@ -364,20 +365,31 @@ $.fn.timeSchedule = function (options) {
      * @param [isDisabled] {boolean} Is buttons disabled ?
      */
     function showEventSettings($bar, eventData = {}, isDisabled = false) {
+
         editableNode = $bar;
         let defaultOpts = webuiPopoverConfGetter($element.get(0), hideFn => {
             $bar.removeClass('in-edit')
         });
-        let options = $.extend({}, defaultOpts, {
-            content: webUIPopoverTemplateFn({disabled: isDisabled})
-        });
+        let options = $.extend({},
+            defaultOpts, {
+                content: webUIPopoverTemplateFn({
+                    fields: eventFields,
+                    disabled: isDisabled
+                })
+            });
         WebuiPopovers.show($bar.get(0), options);
 
+
         $element.find(SELECTORS.eventTitleInput).val(eventData.text);
-        if (eventData.data && eventData.data.comment) {
-            $element.find(SELECTORS.eventTitleTextarea).val(eventData.data.comment);
+
+        const $eventData = $(SELECTORS.eventDataBlock);
+        if (eventData.data) {
+            const fieldNames = Object.keys(eventData.data);
+            fieldNames.forEach(name => {
+                $eventData.find(`[name="${name}"]`).val(eventData.data[name]);
+            });
         } else {
-            $element.find(SELECTORS.eventTitleTextarea).val('');
+            $eventData.find('[name]').val('');
         }
 
         // TODO if editing is enabled
@@ -737,6 +749,9 @@ $.fn.timeSchedule = function (options) {
         }.bind(this));
     };
 
+    /*
+     Click on save/submit button
+     */
     this.changeEventHandler = () => {
 
         $element.on('submit', SELECTORS.eventChangeForm, function (e) {
@@ -750,9 +765,8 @@ $.fn.timeSchedule = function (options) {
                     throw new Error('Editable event not found');
                 }
                 eventData.text = dataToSave.title;
-                eventData.data = {
-                    comment: dataToSave.comment
-                };
+                delete(dataToSave['title']);
+                eventData.data = Object.assign({}, dataToSave);
 
                 // Update memory data
                 scheduleData[sc_key] = eventData;
@@ -774,7 +788,7 @@ $.fn.timeSchedule = function (options) {
 
 
         /*
-        Delete button click
+         Delete button click
          */
         $element.on('click', SELECTORS.eventDeleteBtn, () => {
             let sc_key = editableNode.data("sc_key");
@@ -791,7 +805,7 @@ $.fn.timeSchedule = function (options) {
         });
 
         /*
-        Cancel button click
+         Cancel button click
          */
         $element.on('click', SELECTORS.eventCancelBtn, (e) => {
             e.preventDefault();
@@ -801,21 +815,21 @@ $.fn.timeSchedule = function (options) {
             let currentTimelineIndex = currentTimelineEl.index();
 
             let originalLeft = editableNode.data('originalLeft');
-            if(typeof originalLeft !== 'undefined') {
+            if (typeof originalLeft !== 'undefined') {
                 editableNode.css({
                     left: originalLeft
                 });
             }
 
             let originalWidth = editableNode.data('originalWidth');
-            if(typeof originalWidth !== 'undefined') {
+            if (typeof originalWidth !== 'undefined') {
                 editableNode.css({
                     width: originalWidth
                 });
             }
 
             let originalTimeline = editableNode.data('originalTimeline');
-            if(typeof originalTimeline !== 'undefined' && originalTimeline !== currentTimelineIndex) {
+            if (typeof originalTimeline !== 'undefined' && originalTimeline !== currentTimelineIndex) {
                 let originalTimelineEl = $element.find('.timeline.ui-droppable').eq(originalTimeline);
                 originalTimelineEl.append(editableNode);
             }
@@ -840,7 +854,7 @@ $.fn.timeSchedule = function (options) {
         });
     };
 
-    this.updateEvents = function() {
+    this.updateEvents = function () {
         // console.log(scheduleData, timelineData);
     };
 
@@ -849,7 +863,7 @@ $.fn.timeSchedule = function (options) {
         let $timeTable = $element.find('.sc_main');
         $timeTable.find('.current-time-mark').remove();
 
-        if(currentTimeMarkLeft !== null) {
+        if (currentTimeMarkLeft !== null) {
             $timeTable.append('<div class="current-time-mark"></div>');
             let $mark = $timeTable.find('.current-time-mark');
             $mark.css({left: currentTimeMarkLeft});
@@ -861,7 +875,7 @@ $.fn.timeSchedule = function (options) {
         let hours = date.getHours();
         let minutes = date.getMinutes();
 
-        if(typeof setting.debugTime === 'string') {
+        if (typeof setting.debugTime === 'string') {
             let split = setting.debugTime.split(':');
             hours = split[0];
             minutes = split[1];
@@ -870,9 +884,9 @@ $.fn.timeSchedule = function (options) {
         currentTime = Utils.calcStringTime(`${hours}:${minutes - minutes % 10}`);
 
         let startHour = +setting.startTime.split(':')[0];
-        
+
         fullRowsCount = hours - startHour;
-        if(fullRowsCount >= 0) {
+        if (fullRowsCount >= 0) {
             fullCellsCount = fullRowsCount * 6 + (minutes - minutes % 10) / 10; // one time row contains 6 time cells
             minutePercentage = minutes / 60 * 100;
 

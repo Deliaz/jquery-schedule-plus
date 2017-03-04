@@ -10,12 +10,31 @@
             <% } %>
     >
 
-    <label for="event-comment">Комментарий</label>
-    <textarea class="event-comment-textarea js-event-comment-textarea" id="event-comment" name="comment"
-            <% if(disabled) { %>
-              readonly
+    <div class="event-data js-event-data">
+        <% fields.forEach(field => { %>
+
+        <div class="item-block">
+            <label class="event-data-label"><%- field.title %></label>
+            <% if(field.type === 'textarea') { %>
+            <textarea class="event-data-value" name="<%- field.name %>"
+                    <% if(disabled) { %>
+                      readonly
+                    <% } %>
+            ></textarea>
+            <% } else { %>
+            <input type="text" class="event-data-value" name="<%- field.name %>"
+                    <% if(disabled) { %>
+                   readonly
+                    <% } %>
+
+                    <% if(field.placeholder) { %>
+                   placeholder="<%- field.placeholder %>"
+                    <% } %>
+            />
             <% } %>
-    ></textarea>
+        </div>
+        <% }) %>
+    </div>
 
     <button class="event-save-button js-event-save-button" type="submit"
             <% if(disabled) { %>

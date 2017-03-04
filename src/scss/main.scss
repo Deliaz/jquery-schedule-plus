@@ -175,7 +175,6 @@ body {
     }
   }
 
-
   .ui-draggable-dragging,
   .ui-resizeable {
     z-index: 20;
@@ -227,7 +226,7 @@ body {
   }
 
   .sc_main_scroll .sc_main .tl.create-disabled {
-    background: #e4e4e4;
+    background: #ececec;
   }
 }
 
@@ -248,14 +247,44 @@ body {
   text-shadow: 1px 1px 0 #555;
 }
 
-.event-title-input,
-.event-comment-textarea {
+.event-title-input {
   display: block;
   width: 100%;
   padding: 5px 7px;
   border-radius: 3px;
   border: 1px solid #bbb;
-  margin: 5px 0 15px;
+  margin: 5px 0 10px;
+}
+
+.event-data {
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+
+  .item-block {
+    overflow: hidden;
+    margin: 5px 0 10px;
+
+    label {
+      font-size: 12px;
+      font-weight: bold;
+      padding-top: 6px;
+      float: left;
+      width: 45%;
+    }
+
+    .event-data-value {
+      width: 55%;
+      float: right;
+      padding: 5px 7px;
+      border-radius: 3px;
+      border: 1px solid #bbb;
+      margin: 0;
+      box-sizing: border-box;
+    }
+
+  }
+
 }
 
 .event-save-button,
@@ -300,7 +329,7 @@ body {
 }
 
 .event-edit-form button[disabled],
-.event-edit-form a[disabled]{
+.event-edit-form a[disabled] {
   cursor: default;
   pointer-events: none;
   display: none;
@@ -313,4 +342,11 @@ body {
   height: 100%;
   border-right: 1px solid red;
   box-shadow: 0 0 1px red;
+}
+
+// Overwrite WebUIPopover
+.webui-popover-inner .close {
+  position: absolute;
+  top: 0;
+  right: 0;
 }

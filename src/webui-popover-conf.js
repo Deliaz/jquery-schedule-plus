@@ -7,7 +7,7 @@ export default function getConfig($container, hideFn) {
         closeable: true,
         multi: false,
         dismissible: true,
-        width: 300,
+        width: 400,
 
         onShow: $element => {
 
