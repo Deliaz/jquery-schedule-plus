@@ -377,8 +377,8 @@ $.fn.timeSchedule = function (options) {
                     disabled: isDisabled
                 })
             });
-        WebuiPopovers.show($bar.get(0), options);
 
+        WebuiPopovers.show($bar.get(0), options);
 
         $element.find(SELECTORS.eventTitleInput).val(eventData.text);
 
@@ -392,7 +392,6 @@ $.fn.timeSchedule = function (options) {
             $eventData.find('[name]').val('');
         }
 
-        // TODO if editing is enabled
         $bar.addClass('in-edit');
     }
 
@@ -742,8 +741,7 @@ $.fn.timeSchedule = function (options) {
             element.resizeWindow();
         }).trigger("resize");
 
-        // addrow
-
+        // Add rows
         setting.rows.forEach(function (val, i) {
             this.addRow(i, val);
         }.bind(this));
@@ -855,7 +853,15 @@ $.fn.timeSchedule = function (options) {
     };
 
     this.updateEvents = function () {
-        // console.log(scheduleData, timelineData);
+        console.log(scheduleData, timelineData);
+
+        scheduleData.forEach(event => {
+            let st = Math.ceil((event["start"] - tableStartTime) / setting.widthTime);
+            let positionFromLeft = st * setting.widthTimeX;
+            let isAvailableToModify = positionFromLeft >= currentTimeLeftBorder;
+
+            console.log(event, isAvailableToModify);
+        });
     };
 
 
