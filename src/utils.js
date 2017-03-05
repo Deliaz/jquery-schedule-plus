@@ -7,6 +7,18 @@ export function calcStringTime(string) {
     return min;
 }
 
+let h = 10;
+let m = 12;
+export function debugCalcStringTime() {
+    if (m < 60) {
+        m++
+    } else {
+        h++;
+        m = 0;
+    }
+    return h.toString() + ':' + m.toString();
+}
+
 export function nextTenMinutes(timeString) {
     return formatTime(calcStringTime(timeString) + 600);
 }

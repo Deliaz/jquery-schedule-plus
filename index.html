@@ -20,14 +20,19 @@
                                 start: '10:10',
                                 end: '11:40',
                                 text: 'Утренняя задача',
-                                data: {}
+                                data: {
+                                    manufacturer: "BMW",
+                                    model: "X3",
+                                    date: "01.2014",
+                                    client_name: "Игорь"
+                                }
                             },
                             {
                                 start: '13:30',
                                 end: '14:10',
                                 text: 'Отчет',
                                 data: {
-                                    comment: "Составить отчет"
+                                    comment: ""
                                 }
                             }
                         ]
@@ -40,7 +45,7 @@
                                 end: '13:30',
                                 text: 'Долгий ремонт',
                                 data: {
-                                    comment: 'Необходимо детальное изучение'
+                                    client_name: 'Алексей'
                                 }
                             }
                         ]
@@ -91,7 +96,7 @@
                 time_click: function (time, data) {
                 },
 
-                //debugTime: "10:20", //Устанавливает время для отладки
+                debugTime: "10:20", //Устанавливает время для отладки
                 debug: '#debug'
             });
 

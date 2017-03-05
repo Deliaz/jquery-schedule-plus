@@ -1,5 +1,5 @@
 import * as Utils from './utils';
-import WebUIPopoverExec from 'script-loader!./jquery.webui-popover.min.js';
+import 'script-loader!./jquery.webui-popover.min.js';
 import webuiPopoverConfGetter from './webui-popover-conf';
 import SELECTORS from './selectors';
 
@@ -39,7 +39,7 @@ $.fn.timeSchedule = function (options) {
     };
 
     let setting = $.extend(defaults, options);
-    this.setting = setting;
+    this.settings = setting;
     let scheduleData = [];
     let timelineData = [];
     const $element = $(this);
@@ -284,7 +284,6 @@ $.fn.timeSchedule = function (options) {
         let etext = Utils.formatTime(data["end"]);
         let snum = data["timeline"];
         let positionFromLeft = st * setting.widthTimeX;
-        let isAvailableToModify = positionFromLeft >= currentTimeLeftBorder;
         $bar.css({
             left: positionFromLeft,
             top: 0, //((snum * setting.timeLineY) + setting.timeLinePaddingTop), // это влияет на отступ блока внутри собственного таймлайна. тупо что он отличный был от нуля
@@ -336,6 +335,8 @@ $.fn.timeSchedule = function (options) {
                 .focus();
         }
 
+        // let isAvailableToModify = $bar.position().left >= currentTimeMarkLeft;
+        let isAvailableToModify = positionFromLeft >= currentTimeLeftBorder;
         if (isAvailableToModify) {
             this.makeNodeDraggable($bar);
             this.makeNodeResizable($bar);
@@ -853,14 +854,14 @@ $.fn.timeSchedule = function (options) {
     };
 
     this.updateEvents = function () {
-        console.log(scheduleData, timelineData);
+        const self = this;
 
-        scheduleData.forEach(event => {
-            let st = Math.ceil((event["start"] - tableStartTime) / setting.widthTime);
-            let positionFromLeft = st * setting.widthTimeX;
-            let isAvailableToModify = positionFromLeft >= currentTimeLeftBorder;
-
-            console.log(event, isAvailableToModify);
+        const $bars = $element.find('.sc_bar');
+        $bars.each((i, bar) => {
+            const $bar = $(bar);
+            if(currentTimeMarkLeft >= $bar.position().left) {
+                $bar.addClass('past-event');
+            }
         });
     };
 
@@ -874,12 +875,16 @@ $.fn.timeSchedule = function (options) {
             let $mark = $timeTable.find('.current-time-mark');
             $mark.css({left: currentTimeMarkLeft});
         }
+
+        //TODO не показывать дальше чем текущее время
     };
 
     this.calcCurrentTime = function () {
         let date = new Date();
         let hours = date.getHours();
         let minutes = date.getMinutes();
+
+        // setting.debugTime = Utils.debugCalcStringTime(); //TODO DEBUG
 
         if (typeof setting.debugTime === 'string') {
             let split = setting.debugTime.split(':');
@@ -896,7 +901,7 @@ $.fn.timeSchedule = function (options) {
             fullCellsCount = fullRowsCount * 6 + (minutes - minutes % 10) / 10; // one time row contains 6 time cells
             minutePercentage = minutes / 60 * 100;
 
-            currentTimeLeftBorder = fullCellsCount * 25; // 25 - cell width
+            currentTimeLeftBorder = fullCellsCount * this.settings.widthTimeX;
             currentTimeMarkLeft = fullRowsCount * 150 + (minutePercentage / 100) * 150; // weird math
         } else {
             fullCellsCount = 0;

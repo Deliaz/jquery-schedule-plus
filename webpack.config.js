@@ -9,7 +9,7 @@ module.exports = {
     watchOptions: {
         aggregateTimeout: 200
     },
-    devtool: NODE_ENV === 'dev' ? 'eval' : null,
+    devtool: NODE_ENV === 'dev' ? 'eval' : false,
     output: {
         filename: "bundle.js"
     },
@@ -17,7 +17,10 @@ module.exports = {
         rules: [
             {
                 test: /\.js$/,
-                loader: "babel-loader?presets[]=es2015"
+                loader: "babel-loader",
+                query: {
+                    presets: ['es2015']
+                }
             },
             {
                 test: /\.ejs$/,
@@ -39,10 +42,14 @@ module.exports = {
 
     plugins: [
         new webpack.NoEmitOnErrorsPlugin(),
-        new webpack.optimize.UglifyJsPlugin(),
+        new webpack.LoaderOptionsPlugin({
+            minimize: true,
+            debug: false
+        }),
         new webpack.ProvidePlugin({
             _: 'lodash'
-        })
+        }),
+        new webpack.optimize.UglifyJsPlugin(),
     ],
 
     devServer: {
