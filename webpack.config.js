@@ -11,7 +11,7 @@ module.exports = {
     },
     devtool: NODE_ENV === 'dev' ? 'eval' : false,
     output: {
-        filename: "bundle.js"
+        filename: "./docs/bundle.js"
     },
     module: {
         rules: [
@@ -33,7 +33,7 @@ module.exports = {
             {
                 test: /\.(jpe?g|png|gif|svg)$/i,
                 loaders: [
-                    'file-loader?hash=sha512&digest=hex&name=[hash].[ext]',
+                    'file-loader?hash=sha512&digest=hex&name=./docs/[hash].[ext]',
                     'image-webpack-loader?bypassOnDebug&optimizationLevel=7&interlaced=false'
                 ]
             }
@@ -53,6 +53,8 @@ module.exports = {
     ],
 
     devServer: {
+        publicPath: './docs',
+        contentBase: './docs',
         host: 'localhost',
         port: 8080,
         hot: true
