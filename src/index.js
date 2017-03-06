@@ -629,6 +629,9 @@ $.fn.timeSchedule = function (options) {
             }
             return 0;
         });
+
+
+        // Messy code :-[
         let check = [];
         let h = 0;
         let $e1, $e2;
@@ -656,9 +659,25 @@ $.fn.timeSchedule = function (options) {
                     break;
                 } else {
                     if (setting.seriesEvents) {
-                        $e1.css({left: e2 + setting.resizeBorderWidth});
+                        let delta = 0;
+
+                        // Calculate delta to avoid box overflow
+                        if($e1.width() + e2 + setting.resizeBorderWidth > $e1.parent().width()) {
+                            delta = $e1.parent().width() - $e1.width() - setting.resizeBorderWidth - e2 - setting.resizeBorderWidth;
+                            console.log(delta);
+                        }
+
+                        // Right bar
+                        $e1.css({left: e2 + setting.resizeBorderWidth + (delta ? delta : 0)});
                         let time = self.getBarTime($e1);
                         self.rewriteBarText($e1, {start: time.startTime, end: time.endTime});
+
+                        if(delta) {
+                            // Left bar
+                            $e2.css({left: $e2.position().left + delta });
+                            let time = self.getBarTime($e2);
+                            self.rewriteBarText($e2, {start: time.startTime, end: time.endTime});
+                        }
                     }
                 }
             }
@@ -854,13 +873,12 @@ $.fn.timeSchedule = function (options) {
     };
 
     this.updateEvents = function () {
-        const self = this;
-
         const $bars = $element.find('.sc_bar');
         $bars.each((i, bar) => {
             const $bar = $(bar);
             if (currentTimeMarkLeft >= $bar.position().left) {
                 $bar.addClass('past-event');
+                // TODO remove drag and resize
             }
         });
     };
