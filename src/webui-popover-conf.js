@@ -14,7 +14,7 @@ export default function getConfig($container, hideFn) {
         },
 
         onHide: $element => {
-            if(typeof hideFn === 'function') {
+            if (typeof hideFn === 'function') {
                 hideFn();
             }
         }

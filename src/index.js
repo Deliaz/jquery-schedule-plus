@@ -859,7 +859,7 @@ $.fn.timeSchedule = function (options) {
         const $bars = $element.find('.sc_bar');
         $bars.each((i, bar) => {
             const $bar = $(bar);
-            if(currentTimeMarkLeft >= $bar.position().left) {
+            if (currentTimeMarkLeft >= $bar.position().left) {
                 $bar.addClass('past-event');
             }
         });
