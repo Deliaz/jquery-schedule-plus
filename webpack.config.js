@@ -1,17 +1,15 @@
 const webpack = require('webpack');
+const path = require('path');
 
 const NODE_ENV = (process.env.NODE_ENV || 'dev').trim(); // [dev | prod];
 console.log(`Enviroment: ${NODE_ENV}`);
 
 module.exports = {
     entry: "./src/",
-    // watch: true, //webpack-dev-server --inline --hot
-    watchOptions: {
-        aggregateTimeout: 200
-    },
     devtool: NODE_ENV === 'dev' ? 'eval' : false,
     output: {
-        filename: "./docs/bundle.js"
+        path: path.resolve(__dirname, 'docs'),
+        filename: "bundle.js",
     },
     module: {
         rules: [
@@ -33,7 +31,7 @@ module.exports = {
             {
                 test: /\.(jpe?g|png|gif|svg)$/i,
                 loaders: [
-                    'file-loader?hash=sha512&digest=hex&name=./docs/[hash].[ext]',
+                    'file-loader?hash=sha512&digest=hex&name=[hash].[ext]',
                     'image-webpack-loader?bypassOnDebug&optimizationLevel=7&interlaced=false'
                 ]
             }
@@ -53,10 +51,10 @@ module.exports = {
     ],
 
     devServer: {
-        publicPath: './docs',
-        contentBase: './docs',
+        contentBase: path.join(__dirname, "docs"),
         host: 'localhost',
         port: 8080,
-        hot: true
+        hot: true,
+        overlay: true
     }
 };
