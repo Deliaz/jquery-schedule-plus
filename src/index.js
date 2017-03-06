@@ -304,14 +304,14 @@ $.fn.timeSchedule = function (options) {
         scheduleData.push(data);
         // key
         let key = scheduleData.length - 1;
-        $bar.data("sc_key", key);
+        $bar.data('sc_key', key);
 
 
-        $bar.on("mouseup", function (e) {
+        $bar.on('mouseup', function() { // 'function' bcuz we need 'this'
             let $this = $(this);
 
-            if ($this.data("dragCheck") !== true && $(this).data("resizeCheck") !== true) {
-                let sc_key = $this.data("sc_key");
+            if ($this.data('dragCheck') !== true && $(this).data('resizeCheck') !== true) {
+                let sc_key = $this.data('sc_key');
                 let eventData = scheduleData[sc_key];
 
                 // Show this event settings
@@ -322,6 +322,13 @@ $.fn.timeSchedule = function (options) {
                     setting.click($this, eventData);
                 }
             }
+        });
+
+        $bar.on('mousemove', () => {
+            // if($tlMoveStartEl) {
+            //     $tlMoveStartEl.trigger('mouseup');
+            //     $tlMoveStartEl = null;
+            // }
         });
 
         // Set event popover with it's settings
@@ -434,25 +441,25 @@ $.fn.timeSchedule = function (options) {
 
         let $tlItem = $timeline.find(".tl");
         let lastMovedTarget = null;
-        let $startEl = null;
+        let $tlMoveStartEl = null;
 
         $tlItem
             .on('mousedown', function () {
-                if (!$startEl) {
+                if (!$tlMoveStartEl) {
                     let $this = $(this);
                     // Hide all event popovers
                     WebuiPopovers.hideAll();
 
                     if (!$this.is('.create-disabled')) {
-                        $startEl = $this;
+                        $tlMoveStartEl = $this;
                         $tlItem.removeClass('marked-for-new-event');
-                        $startEl.addClass('marked-for-new-event');
+                        $tlMoveStartEl.addClass('marked-for-new-event');
                     }
                 }
             })
             .on('mouseup', () => {
-                if ($startEl) {
-                    $startEl = null;
+                if ($tlMoveStartEl) {
+                    $tlMoveStartEl = null;
 
                     let $selectedTimeItems = $timeline.find('.tl.marked-for-new-event');
                     if ($selectedTimeItems.size()) {
@@ -467,6 +474,9 @@ $.fn.timeSchedule = function (options) {
                             end: endTime,
                             timeline: $timeline.data('timeline-number')
                         }, true); // with "true" will show event settings popover
+                    } else {
+                        $tlMoveStartEl = null;
+                        lastMovedTarget = null;
                     }
                 }
             });
@@ -475,30 +485,31 @@ $.fn.timeSchedule = function (options) {
             if (e.buttons === 1 && lastMovedTarget !== e.target) {
                 let $this = $(this);
 
-                if (!$startEl || $this.is('.create-disabled')) {
+                if (!$tlMoveStartEl || $this.is('.create-disabled')) {
                     return; //if user are resizing an event bar (bcuz it also mousedown + mousemove)
                 }
 
                 lastMovedTarget = e.target; // cuz it doesn't work with $this
 
                 let $elementsForSelect;
-                let elementPosition = Utils.docPosition($this, $startEl);
+                let elementPosition = Utils.docPosition($this, $tlMoveStartEl);
 
                 if (elementPosition === 'before') {
-                    $elementsForSelect = $startEl.nextUntil($this);
+                    $elementsForSelect = $tlMoveStartEl.nextUntil($this);
                 } else if (elementPosition === 'after') {
-                    $elementsForSelect = $startEl.prevUntil($this);
+                    $elementsForSelect = $tlMoveStartEl.prevUntil($this);
                 }
 
                 if ($elementsForSelect) {
                     $tlItem.removeClass('marked-for-new-event');
                     $elementsForSelect.addClass('marked-for-new-event');
                 }
-                $startEl.addClass('marked-for-new-event');
+                $tlMoveStartEl.addClass('marked-for-new-event');
                 $this.addClass('marked-for-new-event');
             } else if (e.buttons === 0) {
-                if ($startEl) {
-                    $startEl = null;
+                if ($tlMoveStartEl) {
+                    $tlMoveStartEl = null;
+                    lastMovedTarget = null;
                     $tlItem.removeClass('marked-for-new-event');
                 }
             }
