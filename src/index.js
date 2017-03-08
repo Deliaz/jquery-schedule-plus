@@ -326,11 +326,12 @@ $.fn.timeSchedule = function (options) {
             }
         });
 
-        $bar.on('mousemove', () => {
-            // if($tlMoveStartEl) {
-            //     $tlMoveStartEl.trigger('mouseup');
-            //     $tlMoveStartEl = null;
-            // }
+        $bar.on('mouseenter', () => {
+            if($tlMoveStartEl) {
+                $tlMoveStartEl.trigger('mouseup');
+                $tlMoveStartEl = null;
+                lastMovedTarget = null;
+            }
         });
 
         // Set event popover with it's settings
