@@ -55,6 +55,8 @@ $.fn.timeSchedule = function (options) {
     let fullRowsCount = null;
     let fullCellsCount = null;
     let minutePercentage = null;
+    let lastMovedTarget = null;
+    let $tlMoveStartEl = null;
 
     tableStartTime -= (tableStartTime % setting.widthTime);
     tableEndTime -= (tableEndTime % setting.widthTime);
@@ -307,7 +309,7 @@ $.fn.timeSchedule = function (options) {
         $bar.data('sc_key', key);
 
 
-        $bar.on('mouseup', function() { // 'function' bcuz we need 'this'
+        $bar.on('mouseup', function () { // 'function' bcuz we need 'this'
             let $this = $(this);
 
             if ($this.data('dragCheck') !== true && $(this).data('resizeCheck') !== true) {
@@ -439,9 +441,16 @@ $.fn.timeSchedule = function (options) {
         // Timeline events
         //
 
+
+        $timeline.on('mouseleave', () => {
+            if ($tlMoveStartEl) {
+                $tlMoveStartEl.trigger('mouseup');
+                lastMovedTarget = null;
+                $tlMoveStartEl = null;
+            }
+        });
+
         let $tlItem = $timeline.find(".tl");
-        let lastMovedTarget = null;
-        let $tlMoveStartEl = null;
 
         $tlItem
             .on('mousedown', function () {
@@ -479,41 +488,40 @@ $.fn.timeSchedule = function (options) {
                         lastMovedTarget = null;
                     }
                 }
+            })
+            .on('mousemove', function (e) { // mouse move while clicked right mouse btn
+                if (e.buttons === 1 && lastMovedTarget !== e.target) {
+                    let $this = $(this);
+
+                    if (!$tlMoveStartEl || $this.is('.create-disabled')) {
+                        return; //if user are resizing an event bar (bcuz it also mousedown + mousemove)
+                    }
+
+                    lastMovedTarget = e.target; // cuz it doesn't work with $this
+
+                    let $elementsForSelect;
+                    let elementPosition = Utils.docPosition($this, $tlMoveStartEl);
+
+                    if (elementPosition === 'before') {
+                        $elementsForSelect = $tlMoveStartEl.nextUntil($this);
+                    } else if (elementPosition === 'after') {
+                        $elementsForSelect = $tlMoveStartEl.prevUntil($this);
+                    }
+
+                    if ($elementsForSelect) {
+                        $tlItem.removeClass('marked-for-new-event');
+                        $elementsForSelect.addClass('marked-for-new-event');
+                    }
+                    $tlMoveStartEl.addClass('marked-for-new-event');
+                    $this.addClass('marked-for-new-event');
+                } else if (e.buttons === 0) {
+                    if ($tlMoveStartEl) {
+                        $tlMoveStartEl = null;
+                        lastMovedTarget = null;
+                        $tlItem.removeClass('marked-for-new-event');
+                    }
+                }
             });
-
-        $tlItem.on('mousemove', function (e) { // mouse move while clicked right mouse btn
-            if (e.buttons === 1 && lastMovedTarget !== e.target) {
-                let $this = $(this);
-
-                if (!$tlMoveStartEl || $this.is('.create-disabled')) {
-                    return; //if user are resizing an event bar (bcuz it also mousedown + mousemove)
-                }
-
-                lastMovedTarget = e.target; // cuz it doesn't work with $this
-
-                let $elementsForSelect;
-                let elementPosition = Utils.docPosition($this, $tlMoveStartEl);
-
-                if (elementPosition === 'before') {
-                    $elementsForSelect = $tlMoveStartEl.nextUntil($this);
-                } else if (elementPosition === 'after') {
-                    $elementsForSelect = $tlMoveStartEl.prevUntil($this);
-                }
-
-                if ($elementsForSelect) {
-                    $tlItem.removeClass('marked-for-new-event');
-                    $elementsForSelect.addClass('marked-for-new-event');
-                }
-                $tlMoveStartEl.addClass('marked-for-new-event');
-                $this.addClass('marked-for-new-event');
-            } else if (e.buttons === 0) {
-                if ($tlMoveStartEl) {
-                    $tlMoveStartEl = null;
-                    lastMovedTarget = null;
-                    $tlItem.removeClass('marked-for-new-event');
-                }
-            }
-        });
 
         // click event
         if (setting.time_click) {
@@ -673,7 +681,7 @@ $.fn.timeSchedule = function (options) {
                         let delta = 0;
 
                         // Calculate delta to avoid box overflow
-                        if($e1.width() + e2 + setting.resizeBorderWidth > $e1.parent().width()) {
+                        if ($e1.width() + e2 + setting.resizeBorderWidth > $e1.parent().width()) {
                             delta = $e1.parent().width() - $e1.width() - setting.resizeBorderWidth - e2 - setting.resizeBorderWidth;
                             console.log(delta);
                         }
@@ -683,9 +691,9 @@ $.fn.timeSchedule = function (options) {
                         let time = self.getBarTime($e1);
                         self.rewriteBarText($e1, {start: time.startTime, end: time.endTime});
 
-                        if(delta) {
+                        if (delta) {
                             // Left bar
-                            $e2.css({left: $e2.position().left + delta });
+                            $e2.css({left: $e2.position().left + delta});
                             let time = self.getBarTime($e2);
                             self.rewriteBarText($e2, {start: time.startTime, end: time.endTime});
                         }
