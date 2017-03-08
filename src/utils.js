@@ -8,7 +8,7 @@ export function calcStringTime(string) {
 }
 
 let h = 10;
-let m = 18;
+let m = 16;
 export function debugCalcStringTime() {
     if (m < 60) {
         m++
