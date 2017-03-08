@@ -12,7 +12,7 @@ require('./scss/main.scss');
 const webUIPopoverTemplateFn = require('./templates/webui-popover.ejs');
 const eventBarTemplateFn = require('./templates/event-bar.ejs');
 
-$.fn.timeSchedule = function (options) {
+$.fn.timeSchedule = function (barData) {
     const defaults = {
         rows: {},
         startTime: "10:00",
@@ -39,7 +39,7 @@ $.fn.timeSchedule = function (options) {
         debug: ""			// debug selector
     };
 
-    let setting = $.extend(defaults, options);
+    let setting = $.extend(defaults, barData);
     this.settings = setting;
     let scheduleData = [];
     let timelineData = [];
@@ -273,6 +273,28 @@ $.fn.timeSchedule = function (options) {
         });
     };
 
+
+    /**
+     * Generate HTML for event bar
+     * @param {object} barData
+     * @return {string} HTML
+     */
+    this.generateBarHTML = function (barData) {
+        let startTimeText = Utils.formatTime(barData["start"]);
+        let endTimeText = Utils.formatTime(barData["end"]);
+
+        return eventBarTemplateFn({
+            timeText: `${startTimeText} - ${endTimeText}`,
+            title: barData["text"] || '',
+            barClass: barData["class"] || '',
+            manufacturer: barData.data["manufacturer"] || '',
+            model: barData.data["model"] || '',
+            number: barData.data["number"] || '',
+            client_name: barData.data["client_name"] || '',
+            client_phone: barData.data["client_phone"] || '',
+        })
+    };
+
     /**
      * Add new event with converted data
      * @param barData {object} Converted data (see this.addNewEvent)
@@ -283,22 +305,10 @@ $.fn.timeSchedule = function (options) {
         let st = Math.ceil((barData["start"] - tableStartTime) / setting.widthTime);
         let et = Math.floor((barData["end"] - tableStartTime) / setting.widthTime);
 
-        let stext = Utils.formatTime(barData["start"]);
-        let etext = Utils.formatTime(barData["end"]);
-        // let snum = data["timeline"];
         let positionFromLeft = st * setting.widthTimeX;
 
-        barData.data = barData.data ? barData.data : {};
-        let $bar = $(eventBarTemplateFn({
-            timeText: `${stext} - ${etext}`,
-            title: barData["text"] || '',
-            barClass: barData["class"] || '',
-            manufacturer: barData.data["manufacturer"] || '',
-            model: barData.data["model"] || '',
-            number: barData.data["number"] || '',
-            client_name: barData.data["client_name"] || '',
-            client_phone: barData.data["client_phone"] || '',
-        }));
+        barData.data = barData.data || {};
+        let $bar = $(this.generateBarHTML(barData));
 
         $bar.css({
             left: positionFromLeft,
@@ -795,6 +805,7 @@ $.fn.timeSchedule = function (options) {
      Click on save/submit button
      */
     this.changeEventHandler = () => {
+        const self = this;
 
         $element.on('submit', SELECTORS.eventChangeForm, function (e) {
             e.preventDefault();
@@ -813,8 +824,14 @@ $.fn.timeSchedule = function (options) {
                 // Update memory data
                 scheduleData[sc_key] = eventData;
 
+                // Generate HTML with updated data
+                eventData.data = eventData.data || {};
+                const newHTMLData = $(self.generateBarHTML(eventData))
+                    .unwrap('.sc_bar') // unwrap because we need only inside html
+                    .html();
+
                 // Update UI data
-                editableNode.find('.text').text(eventData.text);
+                editableNode.html(newHTMLData);
 
                 // Hide event settings
                 editableNode.webuiPopover('hide');
