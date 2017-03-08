@@ -393,7 +393,8 @@ $.fn.timeSchedule = function (barData) {
 
         editableNode = $bar;
         let defaultOpts = webuiPopoverConfGetter($element.get(0), hideFn => {
-            $bar.removeClass('in-edit')
+            $bar.removeClass('in-edit');
+            $bar.webuiPopover('destroy');
         });
         let options = $.extend({},
             defaultOpts, {
@@ -834,7 +835,7 @@ $.fn.timeSchedule = function (barData) {
                 editableNode.html(newHTMLData);
 
                 // Hide event settings
-                editableNode.webuiPopover('hide');
+                editableNode.webuiPopover('destroy');
 
                 editableNode.removeData('originalLeft');
                 editableNode.removeData('originalTimeline');
@@ -854,7 +855,7 @@ $.fn.timeSchedule = function (barData) {
             delete(scheduleData[sc_key]); // delete will save keys
 
             // Hide settings popover
-            editableNode.webuiPopover('hide');
+            editableNode.webuiPopover('destroy');
 
             // Delete from UI
             editableNode.off();
@@ -905,7 +906,7 @@ $.fn.timeSchedule = function (barData) {
 
             element.rewriteBarText(editableNode, scheduleData[sc_key]);
 
-            editableNode.webuiPopover('hide');
+            editableNode.webuiPopover('destroy');
 
             editableNode = null;
 

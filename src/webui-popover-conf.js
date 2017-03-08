@@ -8,6 +8,7 @@ export default function getConfig($container, hideFn) {
         multi: false,
         dismissible: true,
         width: 400,
+        cache: false,  //re-create popover each time
 
         onShow: $element => {
 
