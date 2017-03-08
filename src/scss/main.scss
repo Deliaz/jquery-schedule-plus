@@ -156,7 +156,8 @@ body {
       }
     }
 
-    .text {
+    .text,
+    .info {
       display: block;
       padding: 5px 10px 0;
       font-weight: bold;
@@ -165,6 +166,15 @@ body {
       text-overflow: ellipsis;
       white-space: nowrap;
       text-shadow: 1px 1px 1px #444;
+    }
+
+    .info {
+      height: auto;
+      padding: 6px 0 0 10px;
+      font-size: 13px;
+      line-height: 14px;
+      color: #eeeeee;
+      font-weight: normal;
     }
 
     .head {

@@ -10,6 +10,7 @@ require('./scss/main.scss');
 
 
 const webUIPopoverTemplateFn = require('./templates/webui-popover.ejs');
+const eventBarTemplateFn = require('./templates/event-bar.ejs');
 
 $.fn.timeSchedule = function (options) {
     const defaults = {
@@ -18,7 +19,7 @@ $.fn.timeSchedule = function (options) {
         endTime: "18:00",
         widthTimeX: 25,		// Width per cell (px)
         widthTime: 600,		// Separation time (sec)
-        timeLineY: 55,		// timeline height(px)
+        timeLineY: 90,		// timeline height(px)
         timeLineBorder: 4,	// timeline height border
         timeBorder: 1,		// border width
         timeLinePaddingTop: 0,
@@ -274,41 +275,48 @@ $.fn.timeSchedule = function (options) {
 
     /**
      * Add new event with converted data
-     * @param data {object} Converted data (see this.addNewEvent)
+     * @param barData {object} Converted data (see this.addNewEvent)
      * @param [isManuallyNew] {boolean}
      * @returns {number}
      */
-    this.addScheduleData = function (data, isManuallyNew = false) {
-        let st = Math.ceil((data["start"] - tableStartTime) / setting.widthTime);
-        let et = Math.floor((data["end"] - tableStartTime) / setting.widthTime);
-        let $bar = $('<div class="sc_bar"><span class="head"><span class="time"></span></span><span class="text"></span></div>');
-        let stext = Utils.formatTime(data["start"]);
-        let etext = Utils.formatTime(data["end"]);
-        let snum = data["timeline"];
+    this.addScheduleData = function (barData, isManuallyNew = false) {
+        let st = Math.ceil((barData["start"] - tableStartTime) / setting.widthTime);
+        let et = Math.floor((barData["end"] - tableStartTime) / setting.widthTime);
+
+        let stext = Utils.formatTime(barData["start"]);
+        let etext = Utils.formatTime(barData["end"]);
+        // let snum = data["timeline"];
         let positionFromLeft = st * setting.widthTimeX;
+
+        barData.data = barData.data ? barData.data : {};
+        let $bar = $(eventBarTemplateFn({
+            timeText: `${stext} - ${etext}`,
+            title: barData["text"] || '',
+            barClass: barData["class"] || '',
+            manufacturer: barData.data["manufacturer"] || '',
+            model: barData.data["model"] || '',
+            number: barData.data["number"] || '',
+            client_name: barData.data["client_name"] || '',
+            client_phone: barData.data["client_phone"] || '',
+        }));
+
         $bar.css({
             left: positionFromLeft,
             top: 0, //((snum * setting.timeLineY) + setting.timeLinePaddingTop), // это влияет на отступ блока внутри собственного таймлайна. тупо что он отличный был от нуля
             width: ((et - st) * setting.widthTimeX - setting.resizeBorderWidth), //
             height: (setting.timeLineY)
         });
-        $bar.find(".time").text(stext + " - " + etext);
-        if (data["text"]) {
-            $bar.find(".text").text(data["text"]);
-        }
-        if (data["class"]) {
-            $bar.addClass(data["class"]);
-        }
-        //$element.find('.sc_main').append($bar);
-        $element.find('.sc_main .timeline').eq(data["timeline"]).append($bar);
+
+        $element.find('.sc_main .timeline').eq(barData["timeline"]).append($bar);
 
         // Add data
-        scheduleData.push(data);
+        scheduleData.push(barData);
+
         // key
         let key = scheduleData.length - 1;
         $bar.data('sc_key', key);
 
-
+        // Events
         $bar.on('mouseup', function () { // 'function' bcuz we need 'this'
             let $this = $(this);
 
@@ -327,7 +335,7 @@ $.fn.timeSchedule = function (options) {
         });
 
         $bar.on('mouseenter', () => {
-            if($tlMoveStartEl) {
+            if ($tlMoveStartEl) {
                 $tlMoveStartEl.trigger('mouseup');
                 $tlMoveStartEl = null;
                 lastMovedTarget = null;
@@ -337,12 +345,8 @@ $.fn.timeSchedule = function (options) {
         // Set event popover with it's settings
         if (isManuallyNew) {
             editableNode = $bar;
-
             showEventSettings($bar);
-
-            $element
-                .find(SELECTORS.eventTitleInput)
-                .focus();
+            $element.find(SELECTORS.eventTitleInput).focus();
         }
 
         // let isAvailableToModify = $bar.position().left >= currentTimeMarkLeft;
@@ -894,11 +898,14 @@ $.fn.timeSchedule = function (options) {
 
     this.updateEvents = function () {
         const $bars = $element.find('.sc_bar');
+
         $bars.each((i, bar) => {
             const $bar = $(bar);
-            if (currentTimeMarkLeft >= $bar.position().left) {
-                $bar.addClass('past-event');
-                // TODO remove drag and resize
+            if (currentTimeMarkLeft >= $bar.position().left && !$bar.is('.past-event, .ui-draggable-dragging')) {
+
+                $bar.addClass('past-event')
+                    .draggable('destroy')
+                    .resizable('destroy');
             }
         });
     };
@@ -908,13 +915,13 @@ $.fn.timeSchedule = function (options) {
         let $timeTable = $element.find('.sc_main');
         $timeTable.find('.current-time-mark').remove();
 
-        if (currentTimeMarkLeft !== null) {
+        if (currentTimeMarkLeft !== null && currentTimeMarkLeft <= $timeTable.width()) {
             $timeTable.append('<div class="current-time-mark"></div>');
             let $mark = $timeTable.find('.current-time-mark');
             $mark.css({left: currentTimeMarkLeft});
         }
 
-        //TODO не показывать дальше чем текущее время
+
     };
 
     this.calcCurrentTime = function () {
@@ -922,7 +929,7 @@ $.fn.timeSchedule = function (options) {
         let hours = date.getHours();
         let minutes = date.getMinutes();
 
-        // setting.debugTime = Utils.debugCalcStringTime(); //TODO DEBUG
+        setting.debugTime = Utils.debugCalcStringTime(); //TODO DEBUG
 
         if (typeof setting.debugTime === 'string') {
             let split = setting.debugTime.split(':');
@@ -980,7 +987,7 @@ $.fn.timeSchedule = function (options) {
             this.showCurrentTimeProgress();
             this.updateEvents();
             console.timeEnd('Cycle');
-        }, 15000);
+        }, 1000); // TODO DEBUG
     };
 
     // Initialization
