@@ -805,6 +805,13 @@ $.fn.timeSchedule = function (barData) {
         }.bind(this));
     };
 
+
+    this.makeBarPastEvent = $bar => {
+        $bar.addClass('past-event')
+            .draggable('destroy')
+            .resizable('destroy');
+    };
+
     /*
      Click on save/submit button
      */
@@ -839,6 +846,10 @@ $.fn.timeSchedule = function (barData) {
 
                 editableNode.removeData('originalLeft');
                 editableNode.removeData('originalTimeline');
+
+                if(editableNode.position().left <= currentTimeMarkLeft) {
+                    self.makeBarPastEvent(editableNode);
+                }
 
                 editableNode = null;
             } else {
@@ -919,11 +930,8 @@ $.fn.timeSchedule = function (barData) {
 
         $bars.each((i, bar) => {
             const $bar = $(bar);
-            if (currentTimeMarkLeft >= $bar.position().left && !$bar.is('.past-event, .ui-draggable-dragging')) {
-
-                $bar.addClass('past-event')
-                    .draggable('destroy')
-                    .resizable('destroy');
+            if (currentTimeMarkLeft >= $bar.position().left && !$bar.is('.past-event, .in-edit, .ui-draggable-dragging')) {
+                this.makeBarPastEvent($bar);
             }
         });
     };
@@ -1005,7 +1013,7 @@ $.fn.timeSchedule = function (barData) {
             this.showCurrentTimeProgress();
             this.updateEvents();
             console.timeEnd('Cycle');
-        }, 1000); // TODO DEBUG
+        }, 5000); // TODO DEBUG
     };
 
     // Initialization
