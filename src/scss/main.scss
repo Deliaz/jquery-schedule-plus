@@ -240,6 +240,10 @@ body {
   .sc_main_scroll .sc_main .tl.create-disabled {
     background: #ececec;
   }
+
+  .sc_main_scroll .sc_main .tl.created-warning {
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAALElEQVQYV2NkwALevHnznxFdHCQoIiLCiCIBEwQphksgC8Il0AXBEtgEQRIA57sXysLV1PUAAAAASUVORK5CYII=);
+  }
 }
 
 .minutes-percentage {

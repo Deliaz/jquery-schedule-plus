@@ -1001,7 +1001,11 @@ $.fn.timeSchedule = function (barData) {
             let $timeCells = $(this).find('.tl');
 
             for (let i = 0; i < fullCellsCount; i++) {
-                $timeCells.eq(i).addClass('create-disabled');
+                $timeCells.eq(i).removeClass('created-warning').addClass('create-disabled');
+            }
+
+            if(Math.round(minutePercentage * 60) % 1000) {
+                $timeCells.eq(fullCellsCount).addClass('created-warning');
             }
         });
 
@@ -1013,7 +1017,7 @@ $.fn.timeSchedule = function (barData) {
             this.showCurrentTimeProgress();
             this.updateEvents();
             console.timeEnd('Cycle');
-        }, 5000); // TODO DEBUG
+        }, 3000); // TODO DEBUG
     };
 
     // Initialization
