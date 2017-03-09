@@ -1,0 +1,19 @@
+<span class="head">
+    <span class="time"><%- timeText %></span>
+</span>
+<span class="text">
+    <%- title %>
+</span>
+
+<div class="info">
+    <%- manufacturer     %> <%- model %><% if(number) { %>, <%- number %><% } %>
+
+    <% if(client_name) { %>
+    <br>
+    <%- client_name %>
+    <% } %>
+
+    <% if(client_phone) { %>
+    <%- client_phone %>
+    <% } %>
+</div>

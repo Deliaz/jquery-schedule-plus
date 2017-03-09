@@ -11,6 +11,7 @@ require('./scss/main.scss');
 
 const webUIPopoverTemplateFn = require('./templates/webui-popover.ejs');
 const eventBarTemplateFn = require('./templates/event-bar.ejs');
+const eventBarDataTemplateFn = require('./templates/event-bar-data.ejs');
 
 $.fn.timeSchedule = function (barData) {
     const defaults = {
@@ -279,14 +280,13 @@ $.fn.timeSchedule = function (barData) {
      * @param {object} barData
      * @return {string} HTML
      */
-    this.generateBarHTML = function (barData) {
+    this.generateBarDataHTML = function (barData) {
         let startTimeText = Utils.formatTime(barData["start"]);
         let endTimeText = Utils.formatTime(barData["end"]);
 
-        return eventBarTemplateFn({
+        return eventBarDataTemplateFn({
             timeText: `${startTimeText} - ${endTimeText}`,
             title: barData["text"] || '',
-            barClass: barData["class"] || '',
             manufacturer: barData.data["manufacturer"] || '',
             model: barData.data["model"] || '',
             number: barData.data["number"] || '',
@@ -308,7 +308,10 @@ $.fn.timeSchedule = function (barData) {
         let positionFromLeft = st * setting.widthTimeX;
 
         barData.data = barData.data || {};
-        let $bar = $(this.generateBarHTML(barData));
+        let $bar = $(eventBarTemplateFn({
+            barClass: barData["class"] || ''
+        }));
+        $bar.find('.event-bar-data').html(this.generateBarDataHTML(barData));
 
         $bar.css({
             left: positionFromLeft,
@@ -335,7 +338,7 @@ $.fn.timeSchedule = function (barData) {
                 let eventData = scheduleData[sc_key];
 
                 // Show this event settings
-                showEventSettings($this, eventData, positionFromLeft < currentTimeLeftBorder);
+                showEventSettings($this, eventData, positionFromLeft < currentTimeLeftBorder); // TODO check condition
 
                 // Run 'click' callback if it was set
                 if (typeof setting.click === 'function') {
@@ -827,12 +830,9 @@ $.fn.timeSchedule = function (barData) {
 
                 // Generate HTML with updated data
                 eventData.data = eventData.data || {};
-                const newHTMLData = $(self.generateBarHTML(eventData))
-                    .unwrap('.sc_bar') // unwrap because we need only inside html
-                    .html();
-
+                const newDataHTML = self.generateBarDataHTML(eventData);
                 // Update UI data
-                editableNode.html(newHTMLData);
+                editableNode.find('.event-bar-data').html(newDataHTML);
 
                 // Hide event settings
                 editableNode.webuiPopover('destroy');
