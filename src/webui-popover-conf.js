@@ -1,10 +1,10 @@
-export default function getConfig($container, hideFn) {
+export default function getConfig($container, hideFn, closeBtn = true) {
     return {
         container: $container || document.body,
         placement: 'bottom',
         trigger: 'manual',
         // animation: 'fade',
-        closeable: true,
+        closeable: closeBtn,
         multi: false,
         dismissible: true,
         width: 400,

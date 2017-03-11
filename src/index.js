@@ -336,9 +336,10 @@ $.fn.timeSchedule = function (barData) {
             if ($this.data('dragCheck') !== true && $(this).data('resizeCheck') !== true) {
                 let sc_key = $this.data('sc_key');
                 let eventData = scheduleData[sc_key];
+                let currentPositionFromLeft = $this.position().left;
 
                 // Show this event settings
-                showEventSettings($this, eventData, positionFromLeft < currentTimeLeftBorder); // TODO check condition
+                showEventSettings($this, eventData, currentPositionFromLeft < currentTimeMarkLeft);
 
                 // Run 'click' callback if it was set
                 if (typeof setting.click === 'function') {
@@ -398,7 +399,7 @@ $.fn.timeSchedule = function (barData) {
         let defaultOpts = webuiPopoverConfGetter($element.get(0), hideFn => {
             $bar.removeClass('in-edit');
             $bar.webuiPopover('destroy');
-        });
+        }, isDisabled);
         let options = $.extend({},
             defaultOpts, {
                 content: webUIPopoverTemplateFn({
@@ -809,7 +810,8 @@ $.fn.timeSchedule = function (barData) {
     this.makeBarPastEvent = $bar => {
         $bar.addClass('past-event')
             .draggable('destroy')
-            .resizable('destroy');
+            .resizable('destroy')
+            .off('submit',SELECTORS.eventChangeForm);
     };
 
     /*
@@ -1004,7 +1006,7 @@ $.fn.timeSchedule = function (barData) {
                 $timeCells.eq(i).removeClass('created-warning').addClass('create-disabled');
             }
 
-            if(Math.round(minutePercentage * 60) % 1000) {
+            if (Math.round(minutePercentage * 60) % 1000) {
                 $timeCells.eq(fullCellsCount).addClass('created-warning');
             }
         });
