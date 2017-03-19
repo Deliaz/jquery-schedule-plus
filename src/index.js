@@ -37,18 +37,21 @@ $.fn.timeSchedule = function (barData) {
         click: null,
         append: null,
         time_click: null,
-        debug: ""			// debug selector
+        debugContainer: "",			// debug selector
+        demoMode: false,            // run demo mode
+        showTimeMark: false         // show time line and mark past time
+
     };
 
-    let setting = $.extend(defaults, barData);
-    this.settings = setting;
+    let settings = $.extend(defaults, barData);
+    this.settings = settings;
     let scheduleData = [];
     let timelineData = [];
     const $element = $(this);
     const element = (this);
-    let tableStartTime = Utils.calcStringTime(setting.startTime);
-    let tableEndTime = Utils.calcStringTime(setting.endTime);
-    const eventFields = setting.fields || [];
+    let tableStartTime = Utils.calcStringTime(settings.startTime);
+    let tableEndTime = Utils.calcStringTime(settings.endTime);
+    const eventFields = settings.fields || [];
     let currentNode = null;
     let editableNode = null;
     let currentTime = null;
@@ -60,8 +63,8 @@ $.fn.timeSchedule = function (barData) {
     let lastMovedTarget = null;
     let $tlMoveStartEl = null;
 
-    tableStartTime -= (tableStartTime % setting.widthTime);
-    tableEndTime -= (tableEndTime % setting.widthTime);
+    tableStartTime -= (tableStartTime % settings.widthTime);
+    tableEndTime -= (tableEndTime % settings.widthTime);
 
     /**
      * Return timeline data
@@ -76,8 +79,8 @@ $.fn.timeSchedule = function (barData) {
     this.getTimeLineNumber = function (top) {
         let num = 0;
         let n = 0;
-        let tn = Math.ceil(top / (setting.timeLineY + setting.timeLinePaddingTop + setting.timeLinePaddingBottom));
-        setting.rows.forEach(function (val) {
+        let tn = Math.ceil(top / (settings.timeLineY + settings.timeLinePaddingTop + settings.timeLinePaddingBottom));
+        settings.rows.forEach(function (val) {
             let r = val;
             let tr = 0;
             if (typeof r["schedule"] == Object) {
@@ -119,8 +122,8 @@ $.fn.timeSchedule = function (barData) {
         let sc_key = $bar.data('sc_key');
         let x = $bar.position().left;
         let w = $bar.width();
-        let startTime = tableStartTime + (Math.floor(x / setting.widthTimeX) * setting.widthTime);
-        let endTime = tableStartTime + (Math.floor((x + w) / setting.widthTimeX) * setting.widthTime) + setting.widthTime;
+        let startTime = tableStartTime + (Math.floor(x / settings.widthTimeX) * settings.widthTime);
+        let endTime = tableStartTime + (Math.floor((x + w) / settings.widthTimeX) * settings.widthTime) + settings.widthTime;
 
         return {startTime, endTime};
     };
@@ -132,7 +135,7 @@ $.fn.timeSchedule = function (barData) {
 
     this.makeNodeDraggable = function ($node) {
         $node.draggable({
-            grid: [setting.widthTimeX, 1],
+            grid: [settings.widthTimeX, 1],
             containment: ".sc_main",
             helper: 'original',
             start: function (event, ui) {
@@ -160,9 +163,9 @@ $.fn.timeSchedule = function (barData) {
 
 
                 // Uncomment if you want to get hard fixed position
-                // ui.position.top = Math.floor(ui.position.top / setting.timeLineY) * setting.timeLineY;
+                // ui.position.top = Math.floor(ui.position.top / settings.timeLineY) * settings.timeLineY;
 
-                ui.position.left = Math.floor(ui.position.left / setting.widthTimeX) * setting.widthTimeX;
+                ui.position.left = Math.floor(ui.position.left / settings.widthTimeX) * settings.widthTimeX;
 
                 // min position by current time
                 if (ui.position.left <= currentTimeLeftBorder) {
@@ -194,7 +197,7 @@ $.fn.timeSchedule = function (barData) {
                 let sc_key = $node.data("sc_key");
                 let x = $node.position().left;
 
-                let start = tableStartTime + (Math.floor(x / setting.widthTimeX) * setting.widthTime);
+                let start = tableStartTime + (Math.floor(x / settings.widthTimeX) * settings.widthTime);
                 let end = start + ((scheduleData[sc_key]["end"] - scheduleData[sc_key]["start"]));
 
                 showEventSettings($node, scheduleData[sc_key]);
@@ -202,8 +205,8 @@ $.fn.timeSchedule = function (barData) {
                 scheduleData[sc_key]["start"] = start;
                 scheduleData[sc_key]["end"] = end;
                 // Call back if callback is set
-                if (setting.change) {
-                    setting.change($node, scheduleData[sc_key]);
+                if (settings.change) {
+                    settings.change($node, scheduleData[sc_key]);
                 }
             }
         });
@@ -213,8 +216,8 @@ $.fn.timeSchedule = function (barData) {
         let self = this;
         $node.resizable({
             handles: 'e', // East (right) and West (left),
-            grid: [setting.widthTimeX, setting.timeLineY],
-            minWidth: setting.widthTimeX,
+            grid: [settings.widthTimeX, settings.timeLineY],
+            minWidth: settings.widthTimeX,
             start: function (event, ui) {
                 let $node = $(this);
                 if (ui.position.left <= currentTimeLeftBorder && event.toElement.matches('.ui-resizable-w')) {
@@ -267,8 +270,8 @@ $.fn.timeSchedule = function (barData) {
                 showEventSettings($node, scheduleData[sc_key]);
 
                 // Call back if callback is set
-                if (setting.change) {
-                    setting.change($node, scheduleData[sc_key]);
+                if (settings.change) {
+                    settings.change($node, scheduleData[sc_key]);
                 }
             }
         });
@@ -302,10 +305,10 @@ $.fn.timeSchedule = function (barData) {
      * @returns {number}
      */
     this.addScheduleData = function (barData, isManuallyNew = false) {
-        let st = Math.ceil((barData["start"] - tableStartTime) / setting.widthTime);
-        let et = Math.floor((barData["end"] - tableStartTime) / setting.widthTime);
+        let st = Math.ceil((barData["start"] - tableStartTime) / settings.widthTime);
+        let et = Math.floor((barData["end"] - tableStartTime) / settings.widthTime);
 
-        let positionFromLeft = st * setting.widthTimeX;
+        let positionFromLeft = st * settings.widthTimeX;
 
         barData.data = barData.data || {};
         let $bar = $(eventBarTemplateFn({
@@ -315,9 +318,9 @@ $.fn.timeSchedule = function (barData) {
 
         $bar.css({
             left: positionFromLeft,
-            top: 0, //((snum * setting.timeLineY) + setting.timeLinePaddingTop), // это влияет на отступ блока внутри собственного таймлайна. тупо что он отличный был от нуля
-            width: ((et - st) * setting.widthTimeX - setting.resizeBorderWidth), //
-            height: (setting.timeLineY)
+            top: 0, //((snum * settings.timeLineY) + settings.timeLinePaddingTop), // это влияет на отступ блока внутри собственного таймлайна. тупо что он отличный был от нуля
+            width: ((et - st) * settings.widthTimeX - settings.resizeBorderWidth), //
+            height: (settings.timeLineY)
         });
 
         $element.find('.sc_main .timeline').eq(barData["timeline"]).append($bar);
@@ -342,8 +345,8 @@ $.fn.timeSchedule = function (barData) {
                 showEventSettings($this, eventData, currentPositionFromLeft < currentTimeMarkLeft);
 
                 // Run 'click' callback if it was set
-                if (typeof setting.click === 'function') {
-                    setting.click($this, eventData);
+                if (typeof settings.click === 'function') {
+                    settings.click($this, eventData);
                 }
             }
         });
@@ -436,8 +439,8 @@ $.fn.timeSchedule = function (barData) {
         html += '<div class="timeline"><span>' + title + '</span></div>';
         let $data = $(html);
         // event call
-        if (setting.init_data) {
-            setting.init_data($data, row);
+        if (settings.init_data) {
+            settings.init_data($data, row);
         }
         $element.find('.sc_data_scroll').append($data);
 
@@ -447,9 +450,9 @@ $.fn.timeSchedule = function (barData) {
         let $timeline = $(html);
         $timeline.data('timeline-number', id);
 
-        for (let t = tableStartTime; t < tableEndTime; t += setting.widthTime) {
+        for (let t = tableStartTime; t < tableEndTime; t += settings.widthTime) {
             let $tl = $('<div class="tl"></div>');
-            $tl.width(setting.widthTimeX - setting.timeBorder);
+            $tl.width(settings.widthTimeX - settings.timeBorder);
 
             $tl.data("time", Utils.formatTime(t));
             $tl.data("timeline", timeline);
@@ -544,9 +547,9 @@ $.fn.timeSchedule = function (barData) {
             });
 
         // click event
-        if (setting.time_click) {
+        if (settings.time_click) {
             $tlItem.on('click', function () { // regular click
-                setting.time_click(this, $(this).data("time"), $(this).data("timeline"), timelineData[$(this).data("timeline")]);
+                settings.time_click(this, $(this).data("time"), $(this).data("timeline"), timelineData[$(this).data("timeline")]);
             });
         }
 
@@ -555,7 +558,7 @@ $.fn.timeSchedule = function (barData) {
 
         timelineData[timeline] = row;
 
-        if (row["class"] && (row["class"] != "")) {
+        if (row["class"] && (row["class"] !== "")) {
             $element.find('.sc_data .timeline').eq(id).addClass(row["class"]);
             $element.find('.sc_main .timeline').eq(id).addClass(row["class"]);
         }
@@ -601,11 +604,11 @@ $.fn.timeSchedule = function (barData) {
         });
 
         // Call back if callback is set
-        if (setting.append) {
+        if (settings.append) {
             $element.find('.sc_main .timeline').eq(id).find(".sc_bar").each(function () {
                 let node = $(this);
                 let sc_key = node.data("sc_key");
-                setting.append(node, scheduleData[sc_key]);
+                settings.append(node, scheduleData[sc_key]);
             });
         }
     };
@@ -642,8 +645,8 @@ $.fn.timeSchedule = function (barData) {
     this.rewriteBarText = function (node, data) {
         let x = node.position().left;
         let w = node.width();
-        let start = tableStartTime + (Math.floor(x / setting.widthTimeX) * setting.widthTime);
-        //let end = tableStartTime + (Math.floor((x + w) / setting.widthTimeX) * setting.widthTime);
+        let start = tableStartTime + (Math.floor(x / settings.widthTimeX) * settings.widthTime);
+        //let end = tableStartTime + (Math.floor((x + w) / settings.widthTimeX) * settings.widthTime);
         let end = start + (data["end"] - data["start"]);
         let html = Utils.formatTime(start) + " - " + Utils.formatTime(end);
         $(node).find(".time").html(html);
@@ -697,17 +700,17 @@ $.fn.timeSchedule = function (barData) {
                 if (!next) {
                     break;
                 } else {
-                    if (setting.seriesEvents) {
+                    if (settings.seriesEvents) {
                         let delta = 0;
 
                         // Calculate delta to avoid box overflow
-                        if ($e1.width() + e2 + setting.resizeBorderWidth > $e1.parent().width()) {
-                            delta = $e1.parent().width() - $e1.width() - setting.resizeBorderWidth - e2 - setting.resizeBorderWidth;
+                        if ($e1.width() + e2 + settings.resizeBorderWidth > $e1.parent().width()) {
+                            delta = $e1.parent().width() - $e1.width() - settings.resizeBorderWidth - e2 - settings.resizeBorderWidth;
                             console.log(delta);
                         }
 
                         // Right bar
-                        $e1.css({left: e2 + setting.resizeBorderWidth + (delta ? delta : 0)});
+                        $e1.css({left: e2 + settings.resizeBorderWidth + (delta ? delta : 0)});
                         let time = self.getBarTime($e1);
                         self.rewriteBarText($e1, {start: time.startTime, end: time.endTime});
 
@@ -723,19 +726,19 @@ $.fn.timeSchedule = function (barData) {
             if (!check[h]) {
                 check[h] = [];
             }
-            if (setting.seriesEvents) {
+            if (settings.seriesEvents) {
                 h = 0;
             }
-            $e1.css({top: ((h * setting.timeLineY) + setting.timeLinePaddingTop)});
+            $e1.css({top: ((h * settings.timeLineY) + settings.timeLinePaddingTop)});
             check[h][check[h].length] = c1;
         }
         // Adjust height
         this.resizeRow(n, check.length);
     };
     this.resizeRow = function (n, height) {
-        let h = setting.seriesEvents ? 1 : Math.max(height, 1);
-        $element.find('.sc_data .timeline').eq(n).height((h * setting.timeLineY) - setting.timeLineBorder + setting.timeLinePaddingTop + setting.timeLinePaddingBottom);
-        $element.find('.sc_main .timeline').eq(n).height((h * setting.timeLineY) - setting.timeLineBorder + setting.timeLinePaddingTop + setting.timeLinePaddingBottom);
+        let h = settings.seriesEvents ? 1 : Math.max(height, 1);
+        $element.find('.sc_data .timeline').eq(n).height((h * settings.timeLineY) - settings.timeLineBorder + settings.timeLinePaddingTop + settings.timeLinePaddingBottom);
+        $element.find('.sc_main .timeline').eq(n).height((h * settings.timeLineY) - settings.timeLineBorder + settings.timeLinePaddingTop + settings.timeLinePaddingBottom);
 
         $element.find('.sc_main .timeline').eq(n).find(".sc_bgBar").each(function () {
             $(this).height($(this).closest(".timeline").height());
@@ -746,14 +749,14 @@ $.fn.timeSchedule = function (barData) {
     // resizeWindow
     this.resizeWindow = function () {
         let sc_width = $element.width();
-        let sc_main_width = sc_width - setting.dataWidth - (setting.verticalScrollbar);
-        let cell_num = Math.floor((tableEndTime - tableStartTime) / setting.widthTime);
-        $element.find(".sc_header_cell").width(setting.dataWidth);
-        $element.find(".sc_data,.sc_data_scroll").width(setting.dataWidth);
+        let sc_main_width = sc_width - settings.dataWidth - (settings.verticalScrollbar);
+        let cell_num = Math.floor((tableEndTime - tableStartTime) / settings.widthTime);
+        $element.find(".sc_header_cell").width(settings.dataWidth);
+        $element.find(".sc_data,.sc_data_scroll").width(settings.dataWidth);
         $element.find(".sc_header").width(sc_main_width);
         $element.find(".sc_main_box").width(sc_main_width);
-        $element.find(".sc_header_scroll").width(setting.widthTimeX * cell_num);
-        $element.find(".sc_main_scroll").width(setting.widthTimeX * cell_num);
+        $element.find(".sc_header_scroll").width(settings.widthTimeX * cell_num);
+        $element.find(".sc_main_scroll").width(settings.widthTimeX * cell_num);
 
     };
 
@@ -762,9 +765,14 @@ $.fn.timeSchedule = function (barData) {
      */
     this.init = function () {
         console.time('Init');
-        this.calcCurrentTime();
+
+        if (settings.showTimeMark) {
+            this.calcCurrentTime();
+        }
         this.renderData();
-        this.showCurrentTimeProgress();
+        if (settings.showTimeMark) {
+            this.showCurrentTimeProgress();
+        }
 
         this.changeEventHandler();
         console.timeEnd('Init');
@@ -779,17 +787,17 @@ $.fn.timeSchedule = function (barData) {
         });
 
         // add time cell
-        let cell_num = Math.floor((tableEndTime - tableStartTime) / setting.widthTime);
+        let cell_num = Math.floor((tableEndTime - tableStartTime) / settings.widthTime);
         let before_time = -1;
-        for (let t = tableStartTime; t < tableEndTime; t += setting.widthTime) {
+        for (let t = tableStartTime; t < tableEndTime; t += settings.widthTime) {
 
             if (
                 (before_time < 0) ||
-                (Math.floor(before_time / 3600) != Math.floor(t / 3600))) {
+                (Math.floor(before_time / 3600) !== Math.floor(t / 3600))) {
 
                 let $time = $(tableHeaderHTML.replace('{{formatTime}}', Utils.formatTime(t)));
-                let cell_num = Math.floor(Number(Math.min((Math.ceil((t + setting.widthTime) / 3600) * 3600), tableEndTime) - t) / setting.widthTime);
-                $time.width((cell_num * setting.widthTimeX) - setting.headTimeBorder);
+                let cell_num = Math.floor(Number(Math.min((Math.ceil((t + settings.widthTime) / 3600) * 3600), tableEndTime) - t) / settings.widthTime);
+                $time.width((cell_num * settings.widthTimeX) - settings.headTimeBorder);
                 $element.find(".sc_header_scroll").append($time);
 
                 before_time = t;
@@ -801,7 +809,7 @@ $.fn.timeSchedule = function (barData) {
         }).trigger("resize");
 
         // Add rows
-        setting.rows.forEach(function (val, i) {
+        settings.rows.forEach(function (val, i) {
             this.addRow(i, val);
         }.bind(this));
     };
@@ -811,7 +819,7 @@ $.fn.timeSchedule = function (barData) {
         $bar.addClass('past-event')
             .draggable('destroy')
             .resizable('destroy')
-            .off('submit',SELECTORS.eventChangeForm);
+            .off('submit', SELECTORS.eventChangeForm);
     };
 
     /*
@@ -849,7 +857,7 @@ $.fn.timeSchedule = function (barData) {
                 editableNode.removeData('originalLeft');
                 editableNode.removeData('originalTimeline');
 
-                if(editableNode.position().left <= currentTimeMarkLeft) {
+                if (editableNode.position().left <= currentTimeMarkLeft) {
                     self.makeBarPastEvent(editableNode);
                 }
 
@@ -957,17 +965,19 @@ $.fn.timeSchedule = function (barData) {
         let hours = date.getHours();
         let minutes = date.getMinutes();
 
-        setting.debugTime = Utils.debugCalcStringTime(); //TODO DEBUG
+        if (settings.demoMode) {
+            settings.debugTime = Utils.debugCalcStringTime();
+        }
 
-        if (typeof setting.debugTime === 'string') {
-            let split = setting.debugTime.split(':');
+        if (typeof settings.debugTime === 'string') {
+            let split = settings.debugTime.split(':');
             hours = split[0];
             minutes = split[1];
         }
 
         currentTime = Utils.calcStringTime(`${hours}:${minutes - minutes % 10}`);
 
-        let startHour = +setting.startTime.split(':')[0];
+        let startHour = +settings.startTime.split(':')[0];
 
         fullRowsCount = hours - startHour;
         if (fullRowsCount >= 0) {
@@ -1026,14 +1036,15 @@ $.fn.timeSchedule = function (barData) {
     this.init();
 
     this.debug = function () {
+        const $debug = typeof settings.debugContainer === 'string' ? $(settings.debugContainer) : settings.debugContainer;
         let html = '';
         for (let i in scheduleData) {
             let propsString = Object.keys(scheduleData[i]).map(k => `${k}: ${JSON.stringify(scheduleData[i][k])} `).join(' ');
             html += `<div style="font-size: smaller">[${i}] ${propsString}</div>`;
         }
-        $(setting.debug).html(html);
+        $debug.html(html);
     };
-    if (setting.debug && setting.debug != "") {
+    if (settings.debugContainer && settings.debugContainer !== "") {
         setInterval(function () {
             element.debug();
         }, 500);
