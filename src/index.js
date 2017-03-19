@@ -389,8 +389,7 @@ $.fn.timeSchedule = function (barData) {
             $element.find(SELECTORS.eventTitleInput).focus();
         }
 
-        // let isAvailableToModify = $bar.position().left >= currentTimeMarkLeft;
-        let isAvailableToModify = positionFromLeft >= currentTimeLeftBorder;
+        let isAvailableToModify = settings.showTimeMark ? positionFromLeft >= currentTimeLeftBorder : true;
         if (isAvailableToModify) {
             this.makeNodeDraggable($bar);
             this.makeNodeResizable($bar);
@@ -920,7 +919,7 @@ $.fn.timeSchedule = function (barData) {
                 editableNode.removeData('originalLeft');
                 editableNode.removeData('originalTimeline');
 
-                if (editableNode.position().left <= currentTimeMarkLeft) {
+                if (editableNode.position().left <= currentTimeMarkLeft && settings.showTimeMark) {
                     self.makeBarPastEvent(editableNode);
                 }
 
