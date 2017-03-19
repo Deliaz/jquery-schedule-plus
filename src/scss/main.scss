@@ -134,7 +134,8 @@ body {
     border-right: 4px solid #419d2c;
     transition: box-shadow 0.3s ease;
 
-    &.in-edit {
+    &.in-edit,
+    &.same-group {
       background: #cddc20;
       border-right-color: #a6a926;
       box-shadow: 0 0 7px rgba(0, 0, 0, 0.5);
@@ -313,7 +314,8 @@ body {
   cursor: pointer;
 }
 
-.event-cancel-link {
+.event-cancel-link,
+.event-group-link {
   font-size: 12px;
   float: left;
   margin-left: 5px;

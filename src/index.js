@@ -8,7 +8,6 @@ const tableHeaderHTML = require('./templates/table-header.ejs')();
 
 require('./scss/main.scss');
 
-
 const webUIPopoverTemplateFn = require('./templates/webui-popover.ejs');
 const eventBarTemplateFn = require('./templates/event-bar.ejs');
 const eventBarDataTemplateFn = require('./templates/event-bar-data.ejs');
@@ -62,6 +61,7 @@ $.fn.timeSchedule = function (barData) {
     let minutePercentage = null;
     let lastMovedTarget = null;
     let $tlMoveStartEl = null;
+    let $lastEditedBar = null;
 
     tableStartTime -= (tableStartTime % settings.widthTime);
     tableEndTime -= (tableEndTime % settings.widthTime);
@@ -118,8 +118,14 @@ $.fn.timeSchedule = function (barData) {
         this.addScheduleData(convertedData, isManuallyNew);
     };
 
+
+    /**
+     * Calculates and returns date object from given node
+     * @param $bar
+     * @returns {{startTime: *, endTime: *}}
+     */
     this.getBarTime = function ($bar) {
-        let sc_key = $bar.data('sc_key');
+        let scKey = $bar.data('scKey');
         let x = $bar.position().left;
         let w = $bar.width();
         let startTime = tableStartTime + (Math.floor(x / settings.widthTimeX) * settings.widthTime);
@@ -133,6 +139,11 @@ $.fn.timeSchedule = function (barData) {
         return startTime > currentTime;
     };
 
+
+    /**
+     * Makes given event bar draggable
+     * @param $node
+     */
     this.makeNodeDraggable = function ($node) {
         $node.draggable({
             grid: [settings.widthTimeX, 1],
@@ -158,7 +169,7 @@ $.fn.timeSchedule = function (barData) {
                 WebuiPopovers.hideAll();
                 let $moveNode = $(this);
 
-                let sc_key = $moveNode.data("sc_key");
+                let scKey = $moveNode.data("scKey");
                 let timelineNum = element.getTimeLineNumber(ui.offset.top);
 
 
@@ -178,7 +189,7 @@ $.fn.timeSchedule = function (barData) {
                 currentNode["currentTop"] = ui.position.top;
                 currentNode["currentLeft"] = ui.position.left;
                 // Text change
-                element.rewriteBarText($moveNode, scheduleData[sc_key]);
+                element.rewriteBarText($moveNode, scheduleData[scKey]);
 
                 return true;
             },
@@ -194,24 +205,29 @@ $.fn.timeSchedule = function (barData) {
 
                 currentNode = null;
 
-                let sc_key = $node.data("sc_key");
+                let scKey = $node.data("scKey");
                 let x = $node.position().left;
 
                 let start = tableStartTime + (Math.floor(x / settings.widthTimeX) * settings.widthTime);
-                let end = start + ((scheduleData[sc_key]["end"] - scheduleData[sc_key]["start"]));
+                let end = start + ((scheduleData[scKey]["end"] - scheduleData[scKey]["start"]));
 
-                showEventSettings($node, scheduleData[sc_key]);
+                showEventSettings($node, scheduleData[scKey]);
 
-                scheduleData[sc_key]["start"] = start;
-                scheduleData[sc_key]["end"] = end;
+                scheduleData[scKey]["start"] = start;
+                scheduleData[scKey]["end"] = end;
                 // Call back if callback is set
                 if (settings.change) {
-                    settings.change($node, scheduleData[sc_key]);
+                    settings.change($node, scheduleData[scKey]);
                 }
             }
         });
     };
 
+
+    /**
+     * Makes given event bar resizable
+     * @param $node
+     */
     this.makeNodeResizable = function ($node) {
         let self = this;
         $node.resizable({
@@ -249,17 +265,17 @@ $.fn.timeSchedule = function (barData) {
             stop: function (event, ui) {
                 let $node = $(this);
 
-                let sc_key = $node.data("sc_key");
+                let scKey = $node.data("scKey");
                 let time = self.getBarTime($node);
-                let timelineNum = scheduleData[sc_key]["timeline"];
+                let timelineNum = scheduleData[scKey]["timeline"];
 
-                scheduleData[sc_key]["start"] = time.startTime;
-                scheduleData[sc_key]["end"] = time.endTime;
+                scheduleData[scKey]["start"] = time.startTime;
+                scheduleData[scKey]["end"] = time.endTime;
 
                 // Height adjustment
                 element.resetBarPosition(timelineNum);
                 // Text change
-                element.rewriteBarText($node, scheduleData[sc_key]);
+                element.rewriteBarText($node, scheduleData[scKey]);
 
                 $node.data("resizeCheck", false);
 
@@ -267,11 +283,11 @@ $.fn.timeSchedule = function (barData) {
                     originalWidth: ui.originalSize.width
                 });
 
-                showEventSettings($node, scheduleData[sc_key]);
+                showEventSettings($node, scheduleData[scKey]);
 
                 // Call back if callback is set
                 if (settings.change) {
-                    settings.change($node, scheduleData[sc_key]);
+                    settings.change($node, scheduleData[scKey]);
                 }
             }
         });
@@ -298,8 +314,10 @@ $.fn.timeSchedule = function (barData) {
         })
     };
 
+
     /**
      * Add new event with converted data
+     * In case of manual adding consider to use ".addNewEvent"
      * @param barData {object} Converted data (see this.addNewEvent)
      * @param [isManuallyNew] {boolean}
      * @returns {number}
@@ -325,20 +343,24 @@ $.fn.timeSchedule = function (barData) {
 
         $element.find('.sc_main .timeline').eq(barData["timeline"]).append($bar);
 
+        barData.groupId = Utils.generateGUID();
+
         // Add data
         scheduleData.push(barData);
 
         // key
         let key = scheduleData.length - 1;
-        $bar.data('sc_key', key);
+        $bar.data({
+            scKey: key
+        });
 
         // Events
         $bar.on('mouseup', function () { // 'function' bcuz we need 'this'
             let $this = $(this);
 
             if ($this.data('dragCheck') !== true && $(this).data('resizeCheck') !== true) {
-                let sc_key = $this.data('sc_key');
-                let eventData = scheduleData[sc_key];
+                let scKey = $this.data('scKey');
+                let eventData = scheduleData[scKey];
                 let currentPositionFromLeft = $this.position().left;
 
                 // Show this event settings
@@ -351,6 +373,7 @@ $.fn.timeSchedule = function (barData) {
             }
         });
 
+        // Force create new event when mouse was entered on this event bar in creating mode
         $bar.on('mouseenter', () => {
             if ($tlMoveStartEl) {
                 $tlMoveStartEl.trigger('mouseup');
@@ -399,15 +422,19 @@ $.fn.timeSchedule = function (barData) {
     function showEventSettings($bar, eventData = {}, isDisabled = false) {
 
         editableNode = $bar;
-        let defaultOpts = webuiPopoverConfGetter($element.get(0), hideFn => {
+        let defaultOpts = webuiPopoverConfGetter($element.get(0), () => {
+            $lastEditedBar = $bar;
             $bar.removeClass('in-edit');
             $bar.webuiPopover('destroy');
+            removeSameClass();
         }, isDisabled);
+
         let options = $.extend({},
             defaultOpts, {
                 content: webUIPopoverTemplateFn({
                     fields: eventFields,
-                    disabled: isDisabled
+                    disabled: isDisabled,
+                    hasLastEditedBar: $lastEditedBar && $lastEditedBar.size()
                 })
             });
 
@@ -415,20 +442,43 @@ $.fn.timeSchedule = function (barData) {
 
         $element.find(SELECTORS.eventTitleInput).val(eventData.text);
 
-        const $eventData = $(SELECTORS.eventDataBlock);
+        const $eventDataForm = $(SELECTORS.eventDataBlock);
         if (eventData.data) {
             const fieldNames = Object.keys(eventData.data);
             fieldNames.forEach(name => {
-                $eventData.find(`[name="${name}"]`).val(eventData.data[name]);
+                $eventDataForm.find(`[name="${name}"]`).val(eventData.data[name]);
             });
         } else {
-            $eventData.find('[name]').val('');
+            $eventDataForm.find('[name]').val('');
         }
 
         $bar.addClass('in-edit');
+
+        showSameGroup(eventData.groupId);
     }
 
-    // add
+    function showSameGroup(id) {
+        const $bars = $element.find('.sc_bar');
+
+        $bars.each((i, bar) => {
+            const $bar = $(bar);
+            const eventData = scheduleData[$bar.data('scKey')];
+            if (eventData.groupId === id) {
+                $bar.addClass('same-group');
+            }
+        });
+    }
+
+
+    function removeSameClass() {
+        $element.find('.same-group').removeClass('same-group');
+    }
+
+    /**
+     * Creates new event row
+     * @param timeline
+     * @param row
+     */
     this.addRow = function (timeline, row) {
         let title = row["title"];
         let id = $element.find('.sc_main .timeline').length;
@@ -591,11 +641,11 @@ $.fn.timeSchedule = function (barData) {
             accept: ".sc_bar",
             drop: function (ev, ui) {
                 let node = ui.draggable;
-                let sc_key = node.data("sc_key");
-                let nowTimelineNum = scheduleData[sc_key]["timeline"];
+                let scKey = node.data("scKey");
+                let nowTimelineNum = scheduleData[scKey]["timeline"];
                 let timelineNum = $element.find('.sc_main .timeline').index(this);
                 // change timeline
-                scheduleData[sc_key]["timeline"] = timelineNum;
+                scheduleData[scKey]["timeline"] = timelineNum;
                 node.appendTo(this);
                 // Height adjustment
                 element.resetBarPosition(nowTimelineNum);
@@ -607,8 +657,8 @@ $.fn.timeSchedule = function (barData) {
         if (settings.append) {
             $element.find('.sc_main .timeline').eq(id).find(".sc_bar").each(function () {
                 let node = $(this);
-                let sc_key = node.data("sc_key");
-                settings.append(node, scheduleData[sc_key]);
+                let scKey = node.data("scKey");
+                settings.append(node, scheduleData[scKey]);
             });
         }
     };
@@ -641,7 +691,11 @@ $.fn.timeSchedule = function (barData) {
         return data;
     };
 
-    // Change text
+    /**
+     * Update event's text
+     * @param node
+     * @param data
+     */
     this.rewriteBarText = function (node, data) {
         let x = node.position().left;
         let w = node.width();
@@ -653,6 +707,11 @@ $.fn.timeSchedule = function (barData) {
     };
 
 
+    /**
+     * Re-positioning event bars positions after anything was changed
+     * Kind of magic code here
+     * @param n
+     */
     this.resetBarPosition = function (n) {
         let self = this;
         // reorder elements
@@ -735,6 +794,8 @@ $.fn.timeSchedule = function (barData) {
         // Adjust height
         this.resizeRow(n, check.length);
     };
+
+
     this.resizeRow = function (n, height) {
         let h = settings.seriesEvents ? 1 : Math.max(height, 1);
         $element.find('.sc_data .timeline').eq(n).height((h * settings.timeLineY) - settings.timeLineBorder + settings.timeLinePaddingTop + settings.timeLinePaddingBottom);
@@ -746,6 +807,8 @@ $.fn.timeSchedule = function (barData) {
 
         $element.find(".sc_data").height($element.find(".sc_main_box").height());
     };
+
+
     // resizeWindow
     this.resizeWindow = function () {
         let sc_width = $element.width();
@@ -832,9 +895,9 @@ $.fn.timeSchedule = function (barData) {
             e.preventDefault();
 
             if (editableNode) {
-                let dataToSave = Utils.serializeObject($(this)); // заголовок - поле title
-                let sc_key = editableNode.data("sc_key");
-                let eventData = scheduleData[sc_key];
+                let dataToSave = Utils.serializeObject($(this));
+                let scKey = editableNode.data("scKey");
+                let eventData = scheduleData[scKey];
                 if (!eventData) {
                     throw new Error('Editable event not found');
                 }
@@ -843,7 +906,7 @@ $.fn.timeSchedule = function (barData) {
                 eventData.data = Object.assign({}, dataToSave);
 
                 // Update memory data
-                scheduleData[sc_key] = eventData;
+                scheduleData[scKey] = eventData;
 
                 // Generate HTML with updated data
                 eventData.data = eventData.data || {};
@@ -872,8 +935,8 @@ $.fn.timeSchedule = function (barData) {
          Delete button click
          */
         $element.on('click', SELECTORS.eventDeleteBtn, () => {
-            let sc_key = editableNode.data("sc_key");
-            delete(scheduleData[sc_key]); // delete will save keys
+            let scKey = editableNode.data("scKey");
+            delete(scheduleData[scKey]); // delete will save keys
 
             // Hide settings popover
             editableNode.webuiPopover('destroy');
@@ -891,45 +954,90 @@ $.fn.timeSchedule = function (barData) {
         $element.on('click', SELECTORS.eventCancelBtn, (e) => {
             e.preventDefault();
 
-            let sc_key = editableNode.data("sc_key");
-            let currentTimelineEl = editableNode.closest('.timeline.ui-droppable');
-            let currentTimelineIndex = currentTimelineEl.index();
+            const scKey = editableNode.data("scKey");
+            const currentTimelineEl = editableNode.closest('.timeline.ui-droppable');
+            const currentTimelineIndex = currentTimelineEl.index();
 
-            let originalLeft = editableNode.data('originalLeft');
+            const originalLeft = editableNode.data('originalLeft');
             if (typeof originalLeft !== 'undefined') {
                 editableNode.css({
                     left: originalLeft
                 });
             }
 
-            let originalWidth = editableNode.data('originalWidth');
+            const originalWidth = editableNode.data('originalWidth');
             if (typeof originalWidth !== 'undefined') {
                 editableNode.css({
                     width: originalWidth
                 });
             }
 
-            let originalTimeline = editableNode.data('originalTimeline');
+            const originalTimeline = editableNode.data('originalTimeline');
             if (typeof originalTimeline !== 'undefined' && originalTimeline !== currentTimelineIndex) {
                 let originalTimelineEl = $element.find('.timeline.ui-droppable').eq(originalTimeline);
                 originalTimelineEl.append(editableNode);
+                removeSameClass();
+            }
+
+            const originalGroupId = editableNode.data('originalGroupId');
+            if (typeof originalGroupId !== 'undefined') {
+                scheduleData[scKey]['groupId'] = originalGroupId;
             }
 
             editableNode.removeData('originalLeft');
             editableNode.removeData('originalTimeline');
             editableNode.removeData('originalWidth');
+            editableNode.removeData('originalGroupId');
 
 
             let barTime = this.getBarTime(editableNode);
 
-            scheduleData[sc_key]["start"] = barTime.startTime;
-            scheduleData[sc_key]["end"] = barTime.endTime;
+            scheduleData[scKey]["start"] = barTime.startTime;
+            scheduleData[scKey]["end"] = barTime.endTime;
 
-            element.rewriteBarText(editableNode, scheduleData[sc_key]);
+            element.rewriteBarText(editableNode, scheduleData[scKey]);
 
             editableNode.webuiPopover('destroy');
 
             editableNode = null;
+
+            return false;
+        });
+
+
+        /*
+         Group button click
+         */
+        $element.on('click', SELECTORS.eventGroupBtn, (e) => {
+            e.preventDefault();
+
+            if (!$lastEditedBar) {
+                return;
+            }
+
+            const lastEditedBarScKey = $lastEditedBar.data("scKey");
+            const lastBarData = scheduleData[lastEditedBarScKey];
+            const scKey = editableNode.data("scKey");
+            const editableNodeData = scheduleData[scKey];
+
+            editableNode.data('originalGroupId', editableNodeData.groupId); //save original group ID in case of canceling
+
+            const newGroupId = lastBarData.groupId;
+            editableNodeData.groupId = newGroupId;
+
+            showSameGroup(newGroupId);
+
+            const $eventDataForm = $(SELECTORS.eventDataBlock);
+            if (lastBarData.data) {
+                const fieldNames = Object.keys(lastBarData.data);
+                fieldNames.forEach(name => {
+                    $eventDataForm.find(`[name="${name}"]`).val(lastBarData.data[name]);
+                });
+            } else {
+                $eventDataForm.find('[name]').val('');
+            }
+
+            $lastEditedBar.addClass('same-group');
 
             return false;
         });

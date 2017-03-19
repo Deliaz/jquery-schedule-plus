@@ -7,7 +7,7 @@ export default function getConfig($container, hideFn, closeBtn = true) {
         closeable: closeBtn,
         multi: false,
         dismissible: true,
-        width: 400,
+        width: 460,
         cache: false,  //re-create popover each time
 
         onShow: $element => {
