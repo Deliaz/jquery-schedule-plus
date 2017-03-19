@@ -1,4 +1,8 @@
-export default function getConfig($container, hideFn, closeBtn = true) {
+export default function getConfig($container, {
+    hideFn,
+    showFn,
+    closeBtn = true
+}) {
     return {
         container: $container || document.body,
         placement: 'bottom',
@@ -11,7 +15,9 @@ export default function getConfig($container, hideFn, closeBtn = true) {
         cache: false,  //re-create popover each time
 
         onShow: $element => {
-
+            if (typeof showFn === 'function') {
+                showFn();
+            }
         },
 
         onHide: $element => {

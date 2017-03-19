@@ -421,19 +421,22 @@ $.fn.timeSchedule = function (barData) {
     function showEventSettings($bar, eventData = {}, isDisabled = false) {
 
         editableNode = $bar;
-        let defaultOpts = webuiPopoverConfGetter($element.get(0), () => {
-            $lastEditedBar = $bar;
-            $bar.removeClass('in-edit');
-            $bar.webuiPopover('destroy');
-            removeSameClass();
-        }, isDisabled);
+        let defaultOpts = webuiPopoverConfGetter($element.get(0), {
+            hideFn() {
+                $lastEditedBar = $bar;
+                $bar.removeClass('in-edit');
+                $bar.webuiPopover('destroy');
+                removeSameClass();
+            },
+            showFn() {},
+            closeBtn: isDisabled
+        });
 
-        let options = $.extend({},
+        const options = $.extend({},
             defaultOpts, {
                 content: webUIPopoverTemplateFn({
                     fields: eventFields,
-                    disabled: isDisabled,
-                    hasLastEditedBar: $lastEditedBar && $lastEditedBar.size()
+                    disabled: isDisabled
                 })
             });
 
