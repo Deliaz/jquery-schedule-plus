@@ -921,6 +921,7 @@ $.fn.timeSchedule = function (barData) {
 
                 editableNode.removeData('originalLeft');
                 editableNode.removeData('originalTimeline');
+                editableNode.removeData('originalGroupId');
 
                 if (editableNode.position().left <= currentTimeMarkLeft && settings.showTimeMark) {
                     self.makeBarPastEvent(editableNode);
