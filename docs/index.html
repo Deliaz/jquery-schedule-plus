@@ -10,7 +10,7 @@
     <script type="text/javascript" src="./bundle.js"></script>
     <script type="text/javascript">
 
-        jQuery(document).ready(function () {
+        $(document).ready(function () {
             var $sc = jQuery("#schedule").timeSchedule({
                 rows: [
                     {
@@ -20,6 +20,7 @@
                                 start: '10:10',
                                 end: '11:40',
                                 text: 'Утренняя задача',
+                                id: '1',
                                 data: {
                                     manufacturer: "BMW",
                                     model: "x5",
@@ -90,15 +91,8 @@
                         name: 'client_phone',
                     },
                 ],
-                change: function (node, data) {
-                },
-                init_data: function (node, data) {
-                },
-                click: function (node, data) {
-                },
-                append: function (node, data) {
-                },
-                time_click: function (time, data) {
+                onChange: function (data) {
+                    console.log('Changed', data);
                 },
 
                 debugContainer: '#debug',

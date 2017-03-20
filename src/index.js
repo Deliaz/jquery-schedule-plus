@@ -16,7 +16,7 @@ $.fn.timeSchedule = function (barData) {
     const defaults = {
         rows: {},
         startTime: "10:00",
-        endTime: "18:00",
+        endTime: "16:00",
         widthTimeX: 25,		// Width per cell (px)
         widthTime: 600,		// Separation time (sec)
         timeLineY: 90,		// timeline height(px)
@@ -215,10 +215,6 @@ $.fn.timeSchedule = function (barData) {
 
                 scheduleData[scKey]["start"] = start;
                 scheduleData[scKey]["end"] = end;
-                // Call back if callback is set
-                if (settings.change) {
-                    settings.change($node, scheduleData[scKey]);
-                }
             }
         });
     };
@@ -234,6 +230,7 @@ $.fn.timeSchedule = function (barData) {
             handles: 'e', // East (right) and West (left),
             grid: [settings.widthTimeX, settings.timeLineY],
             minWidth: settings.widthTimeX,
+            containment: 'parent',
             start: function (event, ui) {
                 let $node = $(this);
                 if (ui.position.left <= currentTimeLeftBorder && event.toElement.matches('.ui-resizable-w')) {
@@ -928,6 +925,11 @@ $.fn.timeSchedule = function (barData) {
                 }
 
                 editableNode = null;
+
+                // Callback on change
+                if (settings.onChange) {
+                    settings.onChange(scheduleData);
+                }
             } else {
                 throw new Error('Editable node not specified');
             }
@@ -949,6 +951,11 @@ $.fn.timeSchedule = function (barData) {
             editableNode.remove();
 
             editableNode = null;
+
+            // Callback on change
+            if (settings.onChange) {
+                settings.onChange(scheduleData);
+            }
         });
 
         /*
