@@ -30,12 +30,14 @@ $.fn.timeSchedule = function (barData) {
         resizeBorderWidth: 4, // Resize border width
         seriesEvents: true, // allow few events in one row
 
-        // event
+        // events
         init_data: null,
-        change: null,
+        onChange: null,             // callback for submit and delete events
         click: null,
         append: null,
         time_click: null,
+
+        // debug
         debugContainer: "",			// debug selector
         demoMode: false,            // run demo mode
         showTimeMark: false         // show time line and mark past time
@@ -425,7 +427,8 @@ $.fn.timeSchedule = function (barData) {
                 $bar.webuiPopover('destroy');
                 removeSameClass();
             },
-            showFn() {},
+            showFn() {
+            },
             closeBtn: isDisabled
         });
 
@@ -614,23 +617,32 @@ $.fn.timeSchedule = function (barData) {
 
         // Schedule timeline
         if (row["schedule"]) {
-            for (let i in row["schedule"]) {
-                let bdata = row["schedule"][i];
-                let s = Utils.calcStringTime(bdata["start"]);
-                let e = Utils.calcStringTime(bdata["end"]);
+            for (let event in row.schedule) {
+                if (row.schedule.hasOwnProperty(event)) {
 
-                let data = {};
-                data["timeline"] = id;
-                data["start"] = s;
-                data["end"] = e;
-                if (bdata["text"]) {
-                    data["text"] = bdata["text"];
+                    let bdata = row["schedule"][event];
+                    let s = Utils.calcStringTime(bdata["start"]);
+                    let e = Utils.calcStringTime(bdata["end"]);
+
+                    let data = {};
+                    data["timeline"] = id;
+                    data["start"] = s;
+                    data["end"] = e;
+                    if (bdata["text"]) {
+                        data["text"] = bdata["text"];
+                    }
+                    data["data"] = {};
+                    if (bdata["data"]) {
+                        data["data"] = bdata["data"];
+                    }
+                    if (row.id) {
+                        data.row_id = row.id;
+                    }
+                    if(bdata.id) {
+                        data.id = bdata.id;
+                    }
+                    element.addScheduleData(data);
                 }
-                data["data"] = {};
-                if (bdata["data"]) {
-                    data["data"] = bdata["data"];
-                }
-                element.addScheduleData(data);
             }
         }
 
