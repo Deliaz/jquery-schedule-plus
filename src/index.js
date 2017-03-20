@@ -425,9 +425,13 @@ $.fn.timeSchedule = function (barData) {
                 $lastEditedBar = $bar;
                 $bar.removeClass('in-edit');
                 $bar.webuiPopover('destroy');
+                $element.find('.sc_bar.previous-group').removeClass('previous-group');
                 removeSameClass();
             },
             showFn() {
+                if($lastEditedBar) {
+                    $lastEditedBar.addClass('previous-group');
+                }
             },
             closeBtn: isDisabled
         });
