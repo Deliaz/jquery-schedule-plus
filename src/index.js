@@ -16,7 +16,7 @@ $.fn.timeSchedule = function (barData) {
     const defaults = {
         rows: {},
         startTime: "10:00",
-        endTime: "16:00",
+        endTime: "18:00",
         widthTimeX: 25,		// Width per cell (px)
         widthTime: 600,		// Separation time (sec)
         timeLineY: 90,		// timeline height(px)
@@ -425,7 +425,6 @@ $.fn.timeSchedule = function (barData) {
                 $lastEditedBar = $bar;
                 $bar.removeClass('in-edit');
                 $bar.webuiPopover('destroy');
-                $element.find('.sc_bar.previous-group').removeClass('previous-group');
                 removeSameClass();
             },
             showFn() {
@@ -477,7 +476,11 @@ $.fn.timeSchedule = function (barData) {
 
 
     function removeSameClass() {
+        // Remove same class mark
         $element.find('.same-group').removeClass('same-group');
+
+        // Remove previous edited class
+        $element.find('.sc_bar.previous-group').removeClass('previous-group');
     }
 
     /**
@@ -939,6 +942,8 @@ $.fn.timeSchedule = function (barData) {
                 if (editableNode.position().left <= currentTimeMarkLeft && settings.showTimeMark) {
                     self.makeBarPastEvent(editableNode);
                 }
+
+                //TODO sync data across the group
 
                 editableNode = null;
 
