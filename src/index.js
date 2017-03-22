@@ -14,7 +14,7 @@ const eventBarDataTemplateFn = require('./templates/event-bar-data.ejs');
 
 $.fn.timeSchedule = function (barData) {
     const defaults = {
-        rows: {},
+        rows: [],
         startTime: "10:00",
         endTime: "18:00",
         widthTimeX: 25,		// Width per cell (px)
@@ -338,8 +338,11 @@ $.fn.timeSchedule = function (barData) {
             height: (settings.timeLineY)
         });
 
-        $element.find('.sc_main .timeline').eq(barData["timeline"]).append($bar);
+        const rowIndex = barData["timeline"];
 
+        $element.find('.sc_main .timeline').eq(rowIndex).append($bar);
+
+        barData.row_id = settings.rows[rowIndex] ? settings.rows[rowIndex].id : null;
         barData.group_id = barData.group_id || Utils.generateGUID();
 
         // Add data
