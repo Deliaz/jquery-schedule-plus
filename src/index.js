@@ -109,13 +109,11 @@ $.fn.timeSchedule = function (barData) {
      */
     this.addNewEvent = function (data, isManuallyNew) {
 
-        let convertedData = {
-            "timeline": data.timeline || 0,
-            "start": Utils.calcStringTime(data.start),
-            "end": Utils.calcStringTime(data.end),
-            "text": data.text,
-            "data": data.data
-        };
+        const convertedData = Object.assign({}, data);
+
+        convertedData.timeline = convertedData.timeline || 0;
+        convertedData.start = Utils.calcStringTime(convertedData.start);
+        convertedData.end = Utils.calcStringTime(convertedData.end);
 
         this.addScheduleData(convertedData, isManuallyNew);
     };
@@ -342,7 +340,7 @@ $.fn.timeSchedule = function (barData) {
 
         $element.find('.sc_main .timeline').eq(barData["timeline"]).append($bar);
 
-        barData.groupId = Utils.generateGUID();
+        barData.group_id = barData.group_id || Utils.generateGUID();
 
         // Add data
         scheduleData.push(barData);
@@ -459,7 +457,7 @@ $.fn.timeSchedule = function (barData) {
 
         $bar.addClass('in-edit');
 
-        showSameGroup(eventData.groupId);
+        showSameGroup(eventData.group_id);
     }
 
     function showSameGroup(id) {
@@ -468,7 +466,7 @@ $.fn.timeSchedule = function (barData) {
         $bars.each((i, bar) => {
             const $bar = $(bar);
             const eventData = scheduleData[$bar.data('scKey')];
-            if (eventData.groupId === id) {
+            if (eventData.group_id === id) {
                 $bar.addClass('same-group');
             }
         });
@@ -627,28 +625,13 @@ $.fn.timeSchedule = function (barData) {
             for (let event in row.schedule) {
                 if (row.schedule.hasOwnProperty(event)) {
 
-                    let bdata = row["schedule"][event];
-                    let s = Utils.calcStringTime(bdata["start"]);
-                    let e = Utils.calcStringTime(bdata["end"]);
+                    const newEventData = Object.assign({}, row["schedule"][event]);
 
-                    let data = {};
-                    data["timeline"] = id;
-                    data["start"] = s;
-                    data["end"] = e;
-                    if (bdata["text"]) {
-                        data["text"] = bdata["text"];
-                    }
-                    data["data"] = {};
-                    if (bdata["data"]) {
-                        data["data"] = bdata["data"];
-                    }
-                    if (row.id) {
-                        data.row_id = row.id;
-                    }
-                    if(bdata.id) {
-                        data.id = bdata.id;
-                    }
-                    element.addScheduleData(data);
+                    newEventData.start = Utils.calcStringTime(newEventData.start);
+                    newEventData.end = Utils.calcStringTime(newEventData.end);
+                    newEventData.timeline = id;
+
+                    element.addScheduleData(newEventData);
                 }
             }
         }
@@ -1012,7 +995,7 @@ $.fn.timeSchedule = function (barData) {
 
             const originalGroupId = editableNode.data('originalGroupId');
             if (typeof originalGroupId !== 'undefined') {
-                scheduleData[scKey]['groupId'] = originalGroupId;
+                scheduleData[scKey]['group_id'] = originalGroupId;
             }
 
             editableNode.removeData('originalLeft');
@@ -1051,10 +1034,10 @@ $.fn.timeSchedule = function (barData) {
             const scKey = editableNode.data("scKey");
             const editableNodeData = scheduleData[scKey];
 
-            editableNode.data('originalGroupId', editableNodeData.groupId); //save original group ID in case of canceling
+            editableNode.data('originalGroupId', editableNodeData.group_id); //save original group ID in case of canceling
 
-            const newGroupId = lastBarData.groupId;
-            editableNodeData.groupId = newGroupId;
+            const newGroupId = lastBarData.group_id;
+            editableNodeData.group_id = newGroupId;
 
             showSameGroup(newGroupId);
 

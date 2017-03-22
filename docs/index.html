@@ -22,6 +22,7 @@
                                 end: '11:40',
                                 text: 'Утренняя задача',
                                 id: 1111,
+                                group_id: 1,
                                 data: {
                                     manufacturer: "BMW",
                                     model: "x5",
@@ -48,6 +49,7 @@
                                 end: '13:30',
                                 text: 'Долгий ремонт',
                                 id: 2221,
+                                group_id: 1,
                                 data: {
                                     manufacturer: 'Mazda',
                                     model: '3',
@@ -99,20 +101,22 @@
                 },
 
                 debugContainer: '#debug',
-                demoMode: false,
+                demoMode: true,
                 showTimeMark: true
             });
 
 
-            // Add event dynamically
-            $sc.addNewEvent({
-                "start": '15:00',
-                "end": '16:50',
-                "text": "Послеобеденный сон",
-                "timeline": 2,
-                "id": "2222",
-                "data": {}
-            });
+            setTimeout(function() {
+                // Add event dynamically
+                $sc.addNewEvent({
+                    "start": '15:00',
+                    "end": '16:50',
+                    "text": "Послеобеденный сон",
+                    "timeline": 2,
+                    "id": "2222",
+                    "data": {}
+                });
+            }, 2000);
         });
     </script>
 </head>
