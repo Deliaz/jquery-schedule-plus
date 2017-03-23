@@ -64,6 +64,7 @@ $.fn.timeSchedule = function (barData) {
     let lastMovedTarget = null;
     let $tlMoveStartEl = null;
     let $lastEditedBar = null;
+    let creatingNew = false;
 
     tableStartTime -= (tableStartTime % settings.widthTime);
     tableEndTime -= (tableEndTime % settings.widthTime);
@@ -427,9 +428,10 @@ $.fn.timeSchedule = function (barData) {
                 $bar.removeClass('in-edit');
                 $bar.webuiPopover('destroy');
                 removeSameClass();
+                setTimeout(() => {creatingNew = false}, 0);
             },
             showFn() {
-                if($lastEditedBar) {
+                if ($lastEditedBar) {
                     $lastEditedBar.addClass('previous-group');
                 }
             },
@@ -443,6 +445,10 @@ $.fn.timeSchedule = function (barData) {
                     disabled: isDisabled
                 })
             });
+
+        if(!Object.keys(eventData).length) {
+            creatingNew = true;
+        }
 
         WebuiPopovers.show($bar.get(0), options);
 
@@ -769,7 +775,6 @@ $.fn.timeSchedule = function (barData) {
                         // Calculate delta to avoid box overflow
                         if ($e1.width() + e2 + settings.resizeBorderWidth > $e1.parent().width()) {
                             delta = $e1.parent().width() - $e1.width() - settings.resizeBorderWidth - e2 - settings.resizeBorderWidth;
-                            console.log(delta);
                         }
 
                         // Right bar
@@ -831,8 +836,6 @@ $.fn.timeSchedule = function (barData) {
      * Start point
      */
     this.init = function () {
-        console.time('Init');
-
         if (settings.showTimeMark) {
             this.calcCurrentTime();
         }
@@ -842,7 +845,6 @@ $.fn.timeSchedule = function (barData) {
         }
 
         this.changeEventHandler();
-        console.timeEnd('Init');
     };
 
     this.renderData = function () {
@@ -887,6 +889,12 @@ $.fn.timeSchedule = function (barData) {
             .draggable('destroy')
             .resizable('destroy')
             .off('submit', SELECTORS.eventChangeForm);
+    };
+
+    this.runChangeCallback = eventName => {
+        const dataToSend = Object.assign({}, scheduleData);
+        dataToSend.event = eventName;
+        settings.onChange(dataToSend);
     };
 
     /*
@@ -935,7 +943,7 @@ $.fn.timeSchedule = function (barData) {
 
                 // Callback on change
                 if (settings.onChange) {
-                    settings.onChange(scheduleData);
+                    self.runChangeCallback(creatingNew ? 'create' : 'update');
                 }
             } else {
                 throw new Error('Editable node not specified');
@@ -961,7 +969,7 @@ $.fn.timeSchedule = function (barData) {
 
             // Callback on change
             if (settings.onChange) {
-                settings.onChange(scheduleData);
+                self.runChangeCallback('delete');
             }
         });
 
@@ -1015,6 +1023,12 @@ $.fn.timeSchedule = function (barData) {
             element.rewriteBarText(editableNode, scheduleData[scKey]);
 
             editableNode.webuiPopover('destroy');
+
+            if(creatingNew) {
+                creatingNew = false;
+                editableNode.remove();
+                delete(scheduleData[scKey]);
+            }
 
             editableNode = null;
 
@@ -1149,12 +1163,10 @@ $.fn.timeSchedule = function (barData) {
         this.showCurrentTimeMark();
 
         setTimeout(() => {
-            console.time('Cycle');
             this.calcCurrentTime();
             this.showCurrentTimeProgress();
             this.updateEvents();
-            console.timeEnd('Cycle');
-        }, 3000); // TODO DEBUG
+        }, 10000);
     };
 
     // Initialization

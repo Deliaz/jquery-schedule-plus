@@ -10,6 +10,11 @@ $warn_bg: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9I
 $event_bg_color: #67c559;
 
 #schedule {
+  * {
+    -webkit-box-sizing: content-box;
+    box-sizing: content-box;
+  }
+
   .clear {
     clear: both;
     height: 0;
@@ -281,12 +286,15 @@ $event_bg_color: #67c559;
   border-radius: 3px;
   border: 1px solid #bbb;
   margin: 5px 0 10px;
+  box-sizing: border-box !important;
+  -webkit-box-sizing: border-box !important;
 }
 
 .event-data {
   overflow: hidden;
   width: 100%;
-  box-sizing: border-box;
+  box-sizing: border-box !important;
+  -webkit-box-sizing: border-box !important;
 
   .item-block {
     overflow: hidden;
@@ -307,7 +315,8 @@ $event_bg_color: #67c559;
       border-radius: 3px;
       border: 1px solid #bbb;
       margin: 0;
-      box-sizing: border-box;
+      box-sizing: border-box !important;
+      -webkit-box-sizing: border-box !important;
     }
 
   }
