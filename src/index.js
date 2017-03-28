@@ -40,7 +40,8 @@ $.fn.timeSchedule = function (barData) {
         // debug
         debugContainer: "",			// debug selector
         demoMode: false,            // run demo mode
-        showTimeMark: false         // show time line and mark past time
+        showTimeMark: false,        // show time line and mark past time
+        markAllPast: false
 
     };
 
@@ -365,7 +366,7 @@ $.fn.timeSchedule = function (barData) {
                 let currentPositionFromLeft = $this.position().left;
 
                 // Show this event settings
-                showEventSettings($this, eventData, currentPositionFromLeft < currentTimeMarkLeft);
+                showEventSettings($this, eventData, currentPositionFromLeft < currentTimeMarkLeft || settings.markAllPast);
 
                 // Run 'click' callback if it was set
                 if (typeof settings.click === 'function') {
@@ -391,7 +392,7 @@ $.fn.timeSchedule = function (barData) {
         }
 
         let isAvailableToModify = settings.showTimeMark ? positionFromLeft >= currentTimeLeftBorder : true;
-        if (isAvailableToModify) {
+        if (isAvailableToModify && !settings.markAllPast) {
             this.makeNodeDraggable($bar);
             this.makeNodeResizable($bar);
         } else {
@@ -428,10 +429,12 @@ $.fn.timeSchedule = function (barData) {
                 $bar.removeClass('in-edit');
                 $bar.webuiPopover('destroy');
                 removeSameClass();
-                setTimeout(() => {creatingNew = false}, 0);
+                setTimeout(() => {
+                    creatingNew = false
+                }, 0);
             },
             showFn() {
-                if ($lastEditedBar) {
+                if ($lastEditedBar && !settings.markAllPast) {
                     $lastEditedBar.addClass('previous-group');
                 }
             },
@@ -446,7 +449,7 @@ $.fn.timeSchedule = function (barData) {
                 })
             });
 
-        if(!Object.keys(eventData).length) {
+        if (!Object.keys(eventData).length) {
             creatingNew = true;
         }
 
@@ -836,15 +839,20 @@ $.fn.timeSchedule = function (barData) {
      * Start point
      */
     this.init = function () {
-        if (settings.showTimeMark) {
+        if (settings.showTimeMark && !settings.markAllPast) {
             this.calcCurrentTime();
         }
         this.renderData();
-        if (settings.showTimeMark) {
+        if (settings.showTimeMark && !settings.markAllPast) {
             this.showCurrentTimeProgress();
         }
 
         this.changeEventHandler();
+
+        if(settings.markAllPast) {
+            let $timeLines = $element.find('.timeline .tl');
+            $timeLines.addClass('create-disabled');
+        }
     };
 
     this.renderData = function () {
@@ -1024,7 +1032,7 @@ $.fn.timeSchedule = function (barData) {
 
             editableNode.webuiPopover('destroy');
 
-            if(creatingNew) {
+            if (creatingNew) {
                 creatingNew = false;
                 editableNode.remove();
                 delete(scheduleData[scKey]);
