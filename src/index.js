@@ -924,6 +924,7 @@ $.fn.timeSchedule = function (barData) {
                 eventData.text = dataToSave.title;
                 delete(dataToSave['title']);
                 eventData.data = Object.assign({}, dataToSave);
+                eventData.row_id = timelineData[eventData.timeline].id;
 
                 // Update memory data
                 scheduleData[scKey] = eventData;
